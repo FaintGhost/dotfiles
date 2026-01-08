@@ -1,10 +1,50 @@
 {{- if eq .chezmoi.os "linux" -}}
 #!/bin/bash
 
-# 定义颜色
+# 颜色定义
 GREEN='\033[0;32m'
 BLUE='\033[0;34m'
-NC='\033[0m' # No Color
+YELLOW='\033[1;33m'
+RED='\033[0;31m'
+NC='\033[0m'
+
+# ==========================================
+# 辅助函数：进度旋转器
+# ==========================================
+show_spinner() {
+    local pid=$1
+    local delay=0.1
+    local spinstr='|/-\'
+    while [ "$(ps a | awk '{print $1}' | grep $pid)" ]; do
+        local temp=${spinstr#?}
+        printf " [%c]  " "$spinstr"
+        spinstr=$temp${spinstr%"$temp"}
+        sleep $delay
+        printf "\b\b\b\b\b\b"
+    done
+    printf "    \b\b\b\b"
+}
+
+# 辅助函数：执行带旋转器的命令
+execute_with_loader() {
+    local msg=$1
+    shift
+    printf "  > %-30s" "$msg"
+    # 后台执行命令
+    "$@" > /dev/null 2>&1 &
+    local pid=$!
+    # 显示旋转器
+    show_spinner $pid
+    # 等待命令结束并获取退出码
+    wait $pid
+    local exit_code=$?
+    if [ $exit_code -eq 0 ]; then
+        echo -e "${GREEN}完成${NC}"
+    else
+        echo -e "${RED}失败${NC}"
+    fi
+    return $exit_code
+}
 
 # ==========================================
 # 0. 交互式代理配置
@@ -22,48 +62,34 @@ if read -r -p "❓ 是否需要代理? 请输入 IP:Port [留空回车直连]: "
 fi
 
 # ==========================================
-# 1. 基础工具安装 (APT) - 美化版
+# 1. 基础工具安装 (APT)
 # ==========================================
 {{ $sudo := "sudo " -}}
 {{ if eq .chezmoi.username "root" -}}{{ $sudo = "" }}{{ end -}}
 
 echo -e "\n${BLUE}📦 正在同步系统基础软件包 (apt)...${NC}"
 
-# 静默更新索引
-echo -n "  > 更新软件包列表... "
-if {{ $sudo }}apt update -qq > /dev/null 2>&1; then
-    echo -e "${GREEN}完成${NC}"
-else
-    echo -e "\033[0;31m失败\033[0m (请检查网络或源配置)"
-fi
-
-# 静默安装
-echo -n "  > 检查并同步基础工具... "
-if {{ $sudo }}apt install -y -qq {{ .packages.linux.apt | join " " }} > /dev/null 2>&1; then
-    echo -e "${GREEN}已就绪${NC}"
-else
-    echo -e "\033[0;31m失败\033[0m"
-fi
+# 使用自定义函数执行，带进度反馈
+execute_with_loader "更新软件包列表" {{ $sudo }}apt update -y
+execute_with_loader "检查并同步基础工具" {{ $sudo }}apt install -y {{ .packages.linux.apt | join " " }}
 
 # ==========================================
-# 2. 自定义工具安装 (Starship, Bun, UV, FNM)
+# 2. 自定义工具安装
 # ==========================================
 echo -e "\n${BLUE}🚀 正在检查自定义开发工具...${NC}"
 command_exists() { command -v "$1" >/dev/null 2>&1; }
 
 {{ range .packages.linux.custom -}}
 if ! command_exists {{ . }}; then
-    echo -n "  > 正在安装 {{ . }}... "
     {{ if eq . "starship" -}}
-    curl -sS https://starship.rs/install.sh | sh -s -- -y > /dev/null 2>&1
+    execute_with_loader "安装 starship" bash -c "curl -sS https://starship.rs/install.sh | sh -s -- -y"
     {{ else if eq . "bun" -}}
-    curl -fsSL https://bun.sh/install | bash > /dev/null 2>&1
+    execute_with_loader "安装 bun" bash -c "curl -fsSL https://bun.sh/install | bash"
     {{ else if eq . "fnm" -}}
-    curl -fsSL https://fnm.vercel.app/install | bash > /dev/null 2>&1
+    execute_with_loader "安装 fnm" bash -c "curl -fsSL https://fnm.vercel.app/install | bash"
     {{ else if eq . "uv" -}}
-    curl -LsSf https://astral.sh/uv/install.sh | sh > /dev/null 2>&1
+    execute_with_loader "安装 uv" bash -c "curl -LsSf https://astral.sh/uv/install.sh | sh"
     {{ end -}}
-    echo -e "${GREEN}完成${NC}"
 else
     echo -e "  > {{ . }}: ${GREEN}已安装${NC}"
 fi
@@ -80,15 +106,7 @@ FONT_DIR="$HOME/.fonts/$FONT_NAME"
 if [ -d "$FONT_DIR" ]; then
     echo -e "  > $FONT_NAME: ${GREEN}已存在${NC}"
 else
-    echo -n "  > 正在下载安装 $FONT_NAME... "
-    mkdir -p "$FONT_DIR"
-    curl -L -s "https://github.com/ryanoasis/nerd-fonts/releases/latest/download/${FONT_NAME}.zip" -o "${FONT_NAME}.zip"
-    unzip -o -q "${FONT_NAME}.zip" -d "$FONT_DIR/"
-    rm "${FONT_NAME}.zip"
-    if command_exists fc-cache; then
-        fc-cache -f > /dev/null 2>&1
-    fi
-    echo -e "${GREEN}完成${NC}"
+    execute_with_loader "安装字体 $FONT_NAME" bash -c "mkdir -p $FONT_DIR && curl -L -s https://github.com/ryanoasis/nerd-fonts/releases/latest/download/${FONT_NAME}.zip -o ${FONT_NAME}.zip && unzip -o -q ${FONT_NAME}.zip -d $FONT_DIR/ && rm ${FONT_NAME}.zip && (fc-cache -f > /dev/null 2>&1 || true)"
 fi
 {{ end -}}
 
