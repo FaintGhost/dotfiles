@@ -1,10 +1,15 @@
 {{- if eq .chezmoi.os "linux" -}}
 #!/bin/bash
 
+# 定义颜色
+GREEN='\033[0;32m'
+BLUE='\033[0;34m'
+NC='\033[0m' # No Color
+
 # ==========================================
-# 0. 交互式代理配置 (按需输入)
+# 0. 交互式代理配置
 # ==========================================
-echo "🌐 Network Configuration / 网络配置"
+echo -e "${BLUE}🌐 Network Configuration / 网络配置${NC}"
 echo "----------------------------------------"
 if read -r -p "❓ 是否需要代理? 请输入 IP:Port [留空回车直连]: " proxy_addr < /dev/tty; then
     proxy_addr=$(echo "$proxy_addr" | xargs)
@@ -12,65 +17,80 @@ if read -r -p "❓ 是否需要代理? 请输入 IP:Port [留空回车直连]: "
         export http_proxy="http://$proxy_addr"
         export https_proxy="http://$proxy_addr"
         export all_proxy="http://$proxy_addr"
-        echo "✅ 已临时启用代理: $proxy_addr"
+        echo -e "${GREEN}✅ 已临时启用代理: $proxy_addr${NC}"
     fi
 fi
 
 # ==========================================
-# 1. 基础工具安装 (APT)
+# 1. 基础工具安装 (APT) - 美化版
 # ==========================================
-echo "📦 正在安装系统基础软件包..."
 {{ $sudo := "sudo " -}}
 {{ if eq .chezmoi.username "root" -}}{{ $sudo = "" }}{{ end -}}
 
-{{ $sudo }}apt-get update
-{{ $sudo }}apt-get install -y {{ .packages.linux.apt | join " " }}
+echo -e "\n${BLUE}📦 正在同步系统基础软件包 (apt)...${NC}"
+
+# 静默更新索引
+echo -n "  > 更新软件包列表... "
+if {{ $sudo }}apt update -qq > /dev/null 2>&1; then
+    echo -e "${GREEN}完成${NC}"
+else
+    echo -e "\033[0;31m失败\033[0m (请检查网络或源配置)"
+fi
+
+# 静默安装
+echo -n "  > 检查并同步基础工具... "
+if {{ $sudo }}apt install -y -qq {{ .packages.linux.apt | join " " }} > /dev/null 2>&1; then
+    echo -e "${GREEN}已就绪${NC}"
+else
+    echo -e "\033[0;31m失败\033[0m"
+fi
 
 # ==========================================
 # 2. 自定义工具安装 (Starship, Bun, UV, FNM)
 # ==========================================
+echo -e "\n${BLUE}🚀 正在检查自定义开发工具...${NC}"
 command_exists() { command -v "$1" >/dev/null 2>&1; }
 
 {{ range .packages.linux.custom -}}
 if ! command_exists {{ . }}; then
-    echo "🚀 正在安装 {{ . }}..."
+    echo -n "  > 正在安装 {{ . }}... "
     {{ if eq . "starship" -}}
-    curl -sS https://starship.rs/install.sh | sh -s -- -y
+    curl -sS https://starship.rs/install.sh | sh -s -- -y > /dev/null 2>&1
     {{ else if eq . "bun" -}}
-    curl -fsSL https://bun.sh/install | bash
+    curl -fsSL https://bun.sh/install | bash > /dev/null 2>&1
     {{ else if eq . "fnm" -}}
-    curl -fsSL https://fnm.vercel.app/install | bash
+    curl -fsSL https://fnm.vercel.app/install | bash > /dev/null 2>&1
     {{ else if eq . "uv" -}}
-    curl -LsSf https://astral.sh/uv/install.sh | sh
+    curl -LsSf https://astral.sh/uv/install.sh | sh > /dev/null 2>&1
     {{ end -}}
+    echo -e "${GREEN}完成${NC}"
 else
-    echo "✅ {{ . }} 已安装"
+    echo -e "  > {{ . }}: ${GREEN}已安装${NC}"
 fi
 {{ end -}}
 
 # ==========================================
-# 3. 字体安装 (JetBrainsMono 等)
+# 3. 字体安装
 # ==========================================
+echo -e "\n${BLUE}🎨 正在检查终端字体...${NC}"
 {{ range .packages.linux.fonts -}}
 FONT_NAME="{{ . }}"
 FONT_DIR="$HOME/.fonts/$FONT_NAME"
 
 if [ -d "$FONT_DIR" ]; then
-    echo "✅ 字体 $FONT_NAME 已存在，跳过"
+    echo -e "  > $FONT_NAME: ${GREEN}已存在${NC}"
 else
-    echo "[-] 正在下载安装 $FONT_NAME Nerd Font..."
+    echo -n "  > 正在下载安装 $FONT_NAME... "
     mkdir -p "$FONT_DIR"
-    # 下载并直接解压
-    curl -L "https://github.com/ryanoasis/nerd-fonts/releases/latest/download/${FONT_NAME}.zip" -o "${FONT_NAME}.zip"
-    unzip -o "${FONT_NAME}.zip" -d "$FONT_DIR/"
+    curl -L -s "https://github.com/ryanoasis/nerd-fonts/releases/latest/download/${FONT_NAME}.zip" -o "${FONT_NAME}.zip"
+    unzip -o -q "${FONT_NAME}.zip" -d "$FONT_DIR/"
     rm "${FONT_NAME}.zip"
-    
     if command_exists fc-cache; then
-        fc-cache -fv > /dev/null
+        fc-cache -f > /dev/null 2>&1
     fi
-    echo "✨ $FONT_NAME 安装完成"
+    echo -e "${GREEN}完成${NC}"
 fi
 {{ end -}}
 
-echo "🎉 所有声明式软件包同步完成！"
+echo -e "\n${GREEN}🎉 所有声明式软件包同步完成！${NC}"
 {{- end -}}
