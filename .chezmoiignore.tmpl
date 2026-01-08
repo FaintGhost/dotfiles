@@ -1,8 +1,7 @@
-{{- if ne .chezmoi.os "linux" -}}
+{{- if eq .chezmoi.os "windows" -}}
 .bashrc
 .zshrc
 .tmux.conf
-.opencode/
 .ssh/authorized_keys
 .config/nvim/
 {{- end }}
