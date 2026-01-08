@@ -3,6 +3,32 @@
 
 set -e # 遇到错误立即停止
 
+# --- 0. 交互式代理配置 (新增部分) ---
+echo "🌐 Network Configuration / 网络配置"
+echo "----------------------------------------"
+
+# 关键技巧：使用 < /dev/tty 强制从终端读取用户输入，防止被 chezmoi 跳过
+if read -r -p "❓ 是否需要代理? 请输入 IP:Port (例如 192.168.50.254:2080) [留空回车则不使用]: " proxy_addr < /dev/tty; then
+    # 去除可能存在的首尾空格
+    proxy_addr=$(echo "$proxy_addr" | xargs)
+    
+    if [ -n "$proxy_addr" ]; then
+        # 用户输入了内容，设置环境变量
+        export http_proxy="http://$proxy_addr"
+        export https_proxy="http://$proxy_addr"
+        export all_proxy="http://$proxy_addr"
+        
+        echo "✅ 已启用代理: $proxy_addr"
+        echo "   - http_proxy=$http_proxy"
+        echo "   - https_proxy=$https_proxy"
+    else
+        echo "⚪ 未检测到输入，将直接连接网络 (Direct Connection)"
+    fi
+fi
+echo "----------------------------------------"
+
+# --- 下面是原来的安装逻辑 ---
+
 # 辅助函数：判断命令是否存在
 command_exists() {
     command -v "$1" >/dev/null 2>&1
@@ -10,12 +36,10 @@ command_exists() {
 
 echo "🐧 开始检测 Linux 依赖环境..."
 
-# --- 0. 基础工具 (curl, unzip, git) ---
-# Debian/Ubuntu 专用逻辑
+# --- 1. 基础工具 (curl, unzip, git) ---
 if command_exists apt-get; then
     if ! command_exists curl || ! command_exists unzip || ! command_exists git; then
         echo "📦 安装基础工具 (curl, unzip, git)..."
-        # 判断是否需要 sudo
         if [ "$EUID" -ne 0 ]; then
             sudo apt-get update && sudo apt-get install -y curl unzip git
         else
@@ -24,15 +48,16 @@ if command_exists apt-get; then
     fi
 fi
 
-# --- 1. 安装 Starship ---
+# --- 2. 安装 Starship ---
 if ! command_exists starship; then
     echo "🚀 未找到 Starship，正在安装..."
+    # 使用 -y 自动确认，避免安装过程卡住
     curl -sS https://starship.rs/install.sh | sh -s -- -y
 else
     echo "✅ Starship 已安装"
 fi
 
-# --- 2. 安装 Bun ---
+# --- 3. 安装 Bun ---
 if ! command_exists bun; then
     echo "🍞 未找到 Bun，正在安装..."
     curl -fsSL https://bun.sh/install | bash
@@ -41,7 +66,7 @@ else
     echo "✅ Bun 已安装"
 fi
 
-# --- 3. 安装 FNM (Node管理器) ---
+# --- 4. 安装 FNM ---
 if ! command_exists fnm; then
     echo "📦 未找到 FNM，正在安装..."
     curl -fsSL https://fnm.vercel.app/install | bash
@@ -50,7 +75,7 @@ else
     echo "✅ FNM 已安装"
 fi
 
-# --- 4. 安装 uv (Python管理器) [新增] ---
+# --- 5. 安装 uv ---
 if ! command_exists uv; then
     echo "🐍 未找到 uv，正在安装..."
     curl -LsSf https://astral.sh/uv/install.sh | sh
