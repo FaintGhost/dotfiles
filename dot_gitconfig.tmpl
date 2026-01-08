@@ -1,0 +1,15 @@
+[user]
+  name = FaintGhost
+  email = zhang.yaowei@live.com
+
+[core]
+{{- if eq .chezmoi.os "windows" }}
+  autocrlf = true
+{{- else }}
+  autocrlf = input
+{{- end }}
+  editor = nvim
+
+[alias]
+  st = status
+  cm = commit
