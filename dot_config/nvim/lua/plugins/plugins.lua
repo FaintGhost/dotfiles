@@ -31,10 +31,4 @@ return {
       { "<leader>e", "<cmd>NvimTreeToggle<cr>", desc = "开关文件树" },
     }
   },
-
-  -- 4. 自动补全括号
-  {
-    "windwp/nvim-autocomplete", -- 或者 "windwp/nvim-ts-autotag"
-    config = function() require("nvim-autopairs").setup {} end
-  }
 }
