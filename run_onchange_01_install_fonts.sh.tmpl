@@ -1,0 +1,55 @@
+#!/bin/bash
+
+# 锁定字体名称
+FONT_NAME="JetBrainsMono"
+FONT_ZIP="$FONT_NAME.zip"
+FONT_DIR="$HOME/.fonts/$FONT_NAME"
+
+echo "[-] Installing $FONT_NAME Nerd Font [-]"
+echo "#######################################"
+
+# 1. 检查必要工具：curl/wget 和 unzip
+if ! command -v unzip >/dev/null 2>&1; then
+    echo "📦 缺少 unzip，正在尝试安装..."
+    if [ "$EUID" -ne 0 ]; then
+        sudo apt-get update && sudo apt-get install -y unzip
+    else
+        apt-get update && apt-get install -y unzip
+    fi
+fi
+
+# 2. 检查是否已经安装过该字体
+if [ -d "$FONT_DIR" ]; then
+    echo "✅ $FONT_NAME 已经安装在 $FONT_DIR，跳过下载。"
+else
+    echo "Starting download $FONT_NAME Nerd Font..."
+    DOWNLOAD_URL="https://github.com/ryanoasis/nerd-fonts/releases/latest/download/$FONT_ZIP"
+
+    # 3. 下载流程
+    if command -v curl >/dev/null 2>&1; then
+        curl -OL "$DOWNLOAD_URL"
+    elif command -v wget >/dev/null 2>&1; then
+        wget "$DOWNLOAD_URL"
+    else
+        echo "❌ 错误：未找到 curl 或 wget，请先安装其中之一。"
+        exit 1
+    fi
+
+    # 4. 解压与安装
+    echo "creating fonts folder: $HOME/.fonts"
+    mkdir -p "$FONT_DIR"
+
+    echo "unzip the $FONT_ZIP"
+    unzip -o "$FONT_ZIP" -d "$FONT_DIR/"
+
+    # 5. 刷新字体缓存
+    if command -v fc-cache >/dev/null 2>&1; then
+        fc-cache -fv
+    else
+        echo "⚠️  未找到 fc-cache，如果你是在 SSH 远程环境，这通常没关系。"
+    fi
+
+    # 6. 清理现场
+    rm "$FONT_ZIP"
+    echo "✨ $FONT_NAME 安装完成！"
+fi
