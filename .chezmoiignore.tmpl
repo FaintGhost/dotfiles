@@ -1,21 +1,19 @@
 # ==========================================
 # 1. Windows 平台特有忽略
 # ==========================================
-{{- if eq .chezmoi.os "windows" -}}
+{{- if eq .chezmoi.os "windows" }}
 !.bashrc
 .zshrc
 .tmux.conf
 .ssh/authorized_keys
 .config/nvim/
-# 核心修复：禁止 Windows 尝试运行 Linux 的 Shell 脚本
 !run_onchange_*.sh
 {{- end }}
 
 # ==========================================
 # 2. Linux 平台特有忽略
 # ==========================================
-{{- if eq .chezmoi.os "linux" -}}
-# 禁止 Linux 尝试运行 Windows 的 PowerShell 脚本
+{{- if eq .chezmoi.os "linux" }}
 run_onchange_*.ps1
 # 如果你有 Windows 特有的配置文件夹，也可以加在这里
 # AppData/
