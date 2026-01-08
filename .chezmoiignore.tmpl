@@ -1,0 +1,18 @@
+{{- if ne .chezmoi.os "linux" -}}
+.bashrc
+.zshrc
+.tmux.conf
+.opencode/
+{{- end }}
+
+# 永远不要同步的内容 (通常是缓存或敏感临时文件)
+.cache/
+.npm/
+.vscode-server/
+.zed_server/
+.dotnet/
+.gemini/
+.wget-hsts
+.Xauthority
+.bash_history
+.claude/tmp/

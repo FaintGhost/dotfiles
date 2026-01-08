@@ -1,5 +1,16 @@
+{{- $osid := .chezmoi.os -}}
+{{/* 增加安全检查：确保 osRelease 存在后再访问其成员 */}}
+{{- if (index .chezmoi "osRelease") -}}
+  {{- if hasKey .chezmoi.osRelease "id" -}}
+    {{- $osid = printf "%s-%s" .chezmoi.os .chezmoi.osRelease.id -}}
+  {{- end -}}
+{{- end -}}
+
 {{- $agekey := joinPath .chezmoi.homeDir ".config/chezmoi/key/age.txt" -}}
 encryption = "age"
+
+[data]
+    osid = {{ $osid | quote }}
 
 [age]
     identity = {{ $agekey | quote }}
