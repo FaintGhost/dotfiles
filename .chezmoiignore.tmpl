@@ -2,13 +2,13 @@
 # 1. Windows 平台特有忽略
 # ==========================================
 {{- if eq .chezmoi.os "windows" -}}
-.bashrc
+!.bashrc
 .zshrc
 .tmux.conf
 .ssh/authorized_keys
 .config/nvim/
 # 核心修复：禁止 Windows 尝试运行 Linux 的 Shell 脚本
-run_onchange_*.sh
+!run_onchange_*.sh
 {{- end }}
 
 # ==========================================
