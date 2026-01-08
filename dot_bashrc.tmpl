@@ -1,0 +1,27 @@
+alias dc='docker compose'
+{{- /* Proxy alias */}}
+alias p='export http_proxy=http://192.168.50.254:2080;export https_proxy=http://192.168.50.254:2080;export all_proxy=http://192.168.50.254:2080'
+alias t='tmux'
+alias cz='chezmoi'
+export NO_PROXY=localhost,127.0.0.1
+export OPENCODE_DISABLE_DEFAULT_PLUGINS=1
+
+eval "$(starship init bash)"
+
+# bun
+export BUN_INSTALL="$HOME/.bun"
+export PATH="$BUN_INSTALL/bin:$PATH"
+
+. "$HOME/.local/bin/env"
+
+# fnm
+FNM_PATH="{{ .chezmoi.homeDir }}/.local/share/fnm"
+if [ -d "$FNM_PATH" ]; then
+  export PATH="$FNM_PATH:$PATH"
+  eval "`fnm env`"
+fi
+
+# opencode
+export PATH={{ .chezmoi.homeDir }}/.opencode/bin:$PATH
+export PATH="$PATH:/opt/nvim-linux-x86_64/bin"
+export TMPDIR="$HOME/.claude/tmp"
