@@ -1,0 +1,64 @@
+{{- if eq .chezmoi.os "linux" -}}
+#!/bin/bash
+
+set -e # 遇到错误立即停止
+
+# 辅助函数：判断命令是否存在
+command_exists() {
+    command -v "$1" >/dev/null 2>&1
+}
+
+echo "🐧 开始检测 Linux 依赖环境..."
+
+# --- 0. 基础工具 (curl, unzip, git) ---
+# Debian/Ubuntu 专用逻辑
+if command_exists apt-get; then
+    if ! command_exists curl || ! command_exists unzip || ! command_exists git; then
+        echo "📦 安装基础工具 (curl, unzip, git)..."
+        # 判断是否需要 sudo
+        if [ "$EUID" -ne 0 ]; then
+            sudo apt-get update && sudo apt-get install -y curl unzip git
+        else
+            apt-get update && apt-get install -y curl unzip git
+        fi
+    fi
+fi
+
+# --- 1. 安装 Starship ---
+if ! command_exists starship; then
+    echo "🚀 未找到 Starship，正在安装..."
+    curl -sS https://starship.rs/install.sh | sh -s -- -y
+else
+    echo "✅ Starship 已安装"
+fi
+
+# --- 2. 安装 Bun ---
+if ! command_exists bun; then
+    echo "🍞 未找到 Bun，正在安装..."
+    curl -fsSL https://bun.sh/install | bash
+    echo "⚠️  Bun 安装完成。请运行 'source ~/.bashrc' 或重新登录以生效。"
+else
+    echo "✅ Bun 已安装"
+fi
+
+# --- 3. 安装 FNM (Node管理器) ---
+if ! command_exists fnm; then
+    echo "📦 未找到 FNM，正在安装..."
+    curl -fsSL https://fnm.vercel.app/install | bash
+    echo "⚠️  FNM 安装完成。请重新登录以生效。"
+else
+    echo "✅ FNM 已安装"
+fi
+
+# --- 4. 安装 uv (Python管理器) [新增] ---
+if ! command_exists uv; then
+    echo "🐍 未找到 uv，正在安装..."
+    curl -LsSf https://astral.sh/uv/install.sh | sh
+    echo "⚠️  uv 安装完成。请重新登录以生效。"
+else
+    echo "✅ uv 已安装"
+fi
+
+echo "🎉 Linux 环境准备就绪！"
+
+{{- end -}}
