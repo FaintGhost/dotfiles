@@ -1,0 +1,6 @@
+{{- $agekey := joinPath .chezmoi.homeDir ".config/chezmoi/key/age.txt" -}}
+encryption = "age"
+
+[age]
+    identity = {{ $agekey | quote }}
+    recipient = "age1t445u7zvew9tnde9e7uxvux6s4h3arw378tp42pqh29y8xlutytsp7z4v5"
