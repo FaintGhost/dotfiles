@@ -2,12 +2,12 @@
 # 1. Windows 平台特有忽略
 # ==========================================
 {{- if eq .chezmoi.os "windows" }}
-!.bashrc
+.bashrc
 .zshrc
 .tmux.conf
 .ssh/authorized_keys
 .config/nvim/
-!run_onchange_*.sh
+run_onchange_*.sh
 {{- end }}
 
 # ==========================================
