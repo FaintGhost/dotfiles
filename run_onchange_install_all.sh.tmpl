@@ -1,0 +1,76 @@
+{{- if eq .chezmoi.os "linux" -}}
+#!/bin/bash
+
+# ==========================================
+# 0. 交互式代理配置 (按需输入)
+# ==========================================
+echo "🌐 Network Configuration / 网络配置"
+echo "----------------------------------------"
+if read -r -p "❓ 是否需要代理? 请输入 IP:Port [留空回车直连]: " proxy_addr < /dev/tty; then
+    proxy_addr=$(echo "$proxy_addr" | xargs)
+    if [ -n "$proxy_addr" ]; then
+        export http_proxy="http://$proxy_addr"
+        export https_proxy="http://$proxy_addr"
+        export all_proxy="http://$proxy_addr"
+        echo "✅ 已临时启用代理: $proxy_addr"
+    fi
+fi
+
+# ==========================================
+# 1. 基础工具安装 (APT)
+# ==========================================
+echo "📦 正在安装系统基础软件包..."
+{{ $sudo := "sudo " -}}
+{{ if eq .chezmoi.username "root" -}}{{ $sudo = "" }}{{ end -}}
+
+{{ $sudo }}apt-get update
+{{ $sudo }}apt-get install -y {{ .packages.linux.apt | join " " }}
+
+# ==========================================
+# 2. 自定义工具安装 (Starship, Bun, UV, FNM)
+# ==========================================
+command_exists() { command -v "$1" >/dev/null 2>&1; }
+
+{{ range .packages.linux.custom -}}
+if ! command_exists {{ . }}; then
+    echo "🚀 正在安装 {{ . }}..."
+    {{ if eq . "starship" -}}
+    curl -sS https://starship.rs/install.sh | sh -s -- -y
+    {{ else if eq . "bun" -}}
+    curl -fsSL https://bun.sh/install | bash
+    {{ else if eq . "fnm" -}}
+    curl -fsSL https://fnm.vercel.app/install | bash
+    {{ else if eq . "uv" -}}
+    curl -LsSf https://astral.sh/uv/install.sh | sh
+    {{ end -}}
+else
+    echo "✅ {{ . }} 已安装"
+fi
+{{ end -}}
+
+# ==========================================
+# 3. 字体安装 (JetBrainsMono 等)
+# ==========================================
+{{ range .packages.linux.fonts -}}
+FONT_NAME="{{ . }}"
+FONT_DIR="$HOME/.fonts/$FONT_NAME"
+
+if [ -d "$FONT_DIR" ]; then
+    echo "✅ 字体 $FONT_NAME 已存在，跳过"
+else
+    echo "[-] 正在下载安装 $FONT_NAME Nerd Font..."
+    mkdir -p "$FONT_DIR"
+    # 下载并直接解压
+    curl -L "https://github.com/ryanoasis/nerd-fonts/releases/latest/download/${FONT_NAME}.zip" -o "${FONT_NAME}.zip"
+    unzip -o "${FONT_NAME}.zip" -d "$FONT_DIR/"
+    rm "${FONT_NAME}.zip"
+    
+    if command_exists fc-cache; then
+        fc-cache -fv > /dev/null
+    fi
+    echo "✨ $FONT_NAME 安装完成"
+fi
+{{ end -}}
+
+echo "🎉 所有声明式软件包同步完成！"
+{{- end -}}
