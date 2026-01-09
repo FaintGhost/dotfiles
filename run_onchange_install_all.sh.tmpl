@@ -43,7 +43,7 @@ execute_with_loader() {
 }
 
 # ==========================================
-# 0. 交互式代理配置 (仅在交互终端运行)
+# 0. 交互式代理配置
 # ==========================================
 if [ -t 0 ]; then
     echo -e "${BLUE}🌐 Network Configuration / 网络配置${NC}"
@@ -75,8 +75,9 @@ execute_with_loader "检查并同步基础工具" {{ $sudo }}apt install -y {{ .
 echo -e "\n${BLUE}🚀 正在检查自定义开发工具...${NC}"
 command_exists() { command -v "$1" >/dev/null 2>&1; }
 
-{{ range .packages.linux.custom -}}
-{{- if ne . "uv" -}}{{/* 跳过 uv，由 external 管理 */}}
+{{ range .packages.linux.custom }}
+{{ if ne . "uv" }}
+# 处理工具: {{ . }}
 if command_exists {{ . }}; then
     echo -e "  > {{ . }}: ${GREEN}已安装${NC}"
 else
@@ -91,13 +92,12 @@ else
             execute_with_loader "安装 fnm" bash -c "curl -fsSL https://fnm.vercel.app/install | bash"
             ;;
         *)
-            # 如果 custom 列表里有未定义安装方式的包，仅输出提示而不报错
             echo -e "  > {{ . }}: ${YELLOW}跳过 (未定义安装脚本)${NC}"
             ;;
     esac
 fi
-{{- end -}}
-{{ end -}}
+{{ end }}
+{{ end }}
 
 # ==========================================
 # 3. 刷新与收尾
