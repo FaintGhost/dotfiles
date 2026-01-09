@@ -3,6 +3,9 @@
 # 声明式开发工具检查脚本
 # 验证由 .chezmoiexternal 管理的二进制工具状态
 
+# 切换到 chezmoi 源目录（如果需要访问源文件）
+cd "{{ .chezmoi.sourceDir }}" || true
+
 # 颜色定义
 GREEN='\033[0;32m'
 BLUE='\033[0;34m'
