@@ -80,9 +80,6 @@ if command_exists {{ . }}; then
     echo -e "  > {{ . }}: ${GREEN}已安装${NC}"
 else
     case "{{ . }}" in
-        "starship")
-            execute_with_loader "安装 starship" bash -c "curl -sS https://starship.rs/install.sh | sh -s -- -y"
-            ;;
         "fnm")
             execute_with_loader "安装 fnm" bash -c "curl -fsSL https://fnm.vercel.app/install | bash"
             ;;

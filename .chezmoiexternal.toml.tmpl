@@ -54,6 +54,20 @@
     refreshPeriod = "168h"
 {{-   end }}
 
+{{-   if eq . "starship" }}
+{{-     $platform := "unknown-linux-musl" }}
+{{-     if eq $.chezmoi.os "darwin" }}{{ $platform = "apple-darwin" }}{{ end }}
+{{-     $target := printf "%s-%s" $standardArch $platform }}
+{{-     $ext := "tar.gz" }}
+[".local/bin/starship"]
+    type = "archive-file"
+    url = {{ gitHubLatestReleaseAssetURL "starship/starship" (printf "starship-%s.%s" $target $ext) | quote }}
+    executable = true
+    path = "starship"
+    stripComponents = 0
+    refreshPeriod = "168h"
+{{-   end }}
+
 {{- end }}
 
 {{- end }}

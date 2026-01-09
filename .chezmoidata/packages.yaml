@@ -11,10 +11,10 @@ packages:
     binaries:
       - "uv"
       - "bun"
+      - "starship"
 
     # 3. 脚本安装工具 (由 run_onchange 脚本处理)
     installers:
-      - "starship"
       - "fnm"
 
     # 4. 字体
