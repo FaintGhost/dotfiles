@@ -8,6 +8,7 @@
 {{- if eq $osId "linux" }}{{ $fontDir = ".local/share/fonts" }}{{ end -}}
 
 {{- if ne $osId "windows" }}
+
 {{-   if $fontDir }}
 {{-     $nfVersion := (gitHubLatestRelease "ryanoasis/nerd-fonts").TagName }}
 {{-     range .packages.linux.fonts }}
@@ -20,8 +21,6 @@
 {{-   end }}
 
 {{-   range .packages.linux.binaries }}
-
-{{-     /* === UV === */ -}}
 {{-     if eq . "uv" }}
 {{-       $uvAsset := printf "uv-%s-unknown-linux-musl.tar.gz" $arch }}
 {{-       if eq $osId "darwin" }}{{ $uvAsset = printf "uv-%s-apple-darwin.tar.gz" $arch }}{{ end }}
@@ -41,7 +40,7 @@
     path = "uvx"
     stripComponents = 1
     refreshPeriod = "168h"
-{{-     end }}
-
+{{      end }}
 {{-   end }}
+
 {{- end }}

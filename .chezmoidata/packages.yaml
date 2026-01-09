@@ -1,15 +1,22 @@
 packages:
   linux:
+    # 1. 系统级基础工具 (apt)
     apt:
       - "curl"
       - "unzip"
       - "git"
       - "fontconfig"
+
+    # 2. 二进制工具 (由 .chezmoiexternal 处理)
     binaries:
       - "uv"
+
+    # 3. 脚本安装工具 (由 run_onchange 脚本处理)
     installers:
       - "starship"
       - "bun"
       - "fnm"
+
+    # 4. 字体
     fonts:
       - "JetBrainsMono"

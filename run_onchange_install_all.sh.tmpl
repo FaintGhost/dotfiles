@@ -70,9 +70,8 @@ execute_with_loader "更新软件包列表" {{ $sudo }}apt update -y
 execute_with_loader "检查并同步基础工具" {{ $sudo }}apt install -y {{ .packages.linux.apt | join " " }}
 
 # ==========================================
-# 2. 脚本安装工具 (Installers)
+# 2. 脚本安装工具
 # ==========================================
-# 注意：这里现在遍历的是 .installers，不再包含 uv
 echo -e "\n${BLUE}🚀 正在检查自定义开发工具...${NC}"
 command_exists() { command -v "$1" >/dev/null 2>&1; }
 
@@ -95,7 +94,6 @@ else
             ;;
     esac
 fi
-{{ end }}
 {{ end }}
 
 # ==========================================
