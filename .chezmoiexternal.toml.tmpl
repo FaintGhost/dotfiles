@@ -68,6 +68,20 @@
     refreshPeriod = "168h"
 {{-   end }}
 
+{{-   if eq . "fnm" }}
+{{-     $fnmFilename := "fnm-linux" }}
+{{-     if eq $.chezmoi.os "darwin" }}{{ $fnmFilename = "fnm-macos" }}{{ end }}
+{{-     if eq $standardArch "aarch64" }}{{ $fnmFilename = "fnm-arm64" }}{{ end }}
+{{-     $fnmAsset := printf "%s.zip" $fnmFilename }}
+[".local/share/fnm/fnm"]
+    type = "archive-file"
+    url = {{ gitHubLatestReleaseAssetURL "Schniz/fnm" $fnmAsset | quote }}
+    executable = true
+    path = "fnm"
+    stripComponents = 0
+    refreshPeriod = "168h"
+{{-   end }}
+
 {{- end }}
 
 {{- end }}

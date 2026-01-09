@@ -122,6 +122,18 @@ else
     echo -e "  > starship: ${YELLOW}未安装${NC} (将由 chezmoi external 下载)"
 fi
 {{-   end }}
+
+{{-   if eq . "fnm" }}
+# fnm
+BINARY_TOTAL=$((BINARY_TOTAL + 1))
+if [ -f "$HOME/.local/share/fnm/fnm" ]; then
+    FNM_VERSION=$($HOME/.local/share/fnm/fnm --version 2>/dev/null || echo "未知版本")
+    echo -e "  > fnm: ${GREEN}已安装${NC} (${BLUE}$FNM_VERSION${NC})"
+    BINARY_INSTALLED=$((BINARY_INSTALLED + 1))
+else
+    echo -e "  > fnm: ${YELLOW}未安装${NC} (将由 chezmoi external 下载)"
+fi
+{{-   end }}
 {{- end }}
 
 # 显示统计信息
@@ -135,6 +147,7 @@ fi
 # ==========================================
 # 3. 脚本安装工具
 # ==========================================
+{{ if .packages.linux.installers }}
 echo -e "\n${BLUE}🚀 正在检查脚本安装工具...${NC}"
 
 {{ range .packages.linux.installers }}
@@ -142,14 +155,12 @@ if command_exists {{ . }}; then
     echo -e "  > {{ . }}: ${GREEN}已安装${NC}"
 else
     case "{{ . }}" in
-        "fnm")
-            execute_with_loader "安装 fnm" bash -c "curl -fsSL https://fnm.vercel.app/install | bash"
-            ;;
         *)
             echo -e "  > {{ . }}: ${YELLOW}跳过 (未定义安装脚本)${NC}"
             ;;
     esac
 fi
+{{ end }}
 {{ end }}
 
 # ==========================================

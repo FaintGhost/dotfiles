@@ -12,10 +12,10 @@ packages:
       - "uv"
       - "bun"
       - "starship"
+      - "fnm"
 
     # 3. 脚本安装工具 (由 run_onchange 脚本处理)
     installers:
-      - "fnm"
 
     # 4. 字体
     fonts:
