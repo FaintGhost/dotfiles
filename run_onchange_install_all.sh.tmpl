@@ -81,21 +81,14 @@ BINARY_INSTALLED=0
 
 {{ range .packages.linux.binaries }}
 {{-   if eq . "uv" }}
-# uv & uvx
-BINARY_TOTAL=$((BINARY_TOTAL + 2))
+# uv
+BINARY_TOTAL=$((BINARY_TOTAL + 1))
 if command_exists uv; then
-    UV_VERSION=$(uv --version 2>/dev/null | head -1 || echo "未知版本")
+    UV_VERSION=$(uv --version 2>/dev/null | awk '{print $2}')
     echo -e "  > uv: ${GREEN}已安装${NC} (${BLUE}$UV_VERSION${NC})"
     BINARY_INSTALLED=$((BINARY_INSTALLED + 1))
 else
     echo -e "  > uv: ${YELLOW}未安装${NC} (将由 chezmoi external 下载)"
-fi
-
-if command_exists uvx; then
-    echo -e "  > uvx: ${GREEN}已安装${NC}"
-    BINARY_INSTALLED=$((BINARY_INSTALLED + 1))
-else
-    echo -e "  > uvx: ${YELLOW}未安装${NC} (将由 chezmoi external 下载)"
 fi
 {{-   end }}
 
@@ -103,7 +96,7 @@ fi
 # bun
 BINARY_TOTAL=$((BINARY_TOTAL + 1))
 if [ -f "$HOME/.bun/bin/bun" ]; then
-    BUN_VERSION=$($HOME/.bun/bin/bun --version 2>/dev/null || echo "未知版本")
+    BUN_VERSION=$($HOME/.bun/bin/bun --version 2>/dev/null)
     echo -e "  > bun: ${GREEN}已安装${NC} (${BLUE}$BUN_VERSION${NC})"
     BINARY_INSTALLED=$((BINARY_INSTALLED + 1))
 else
@@ -115,7 +108,7 @@ fi
 # starship
 BINARY_TOTAL=$((BINARY_TOTAL + 1))
 if command_exists starship; then
-    STARSHIP_VERSION=$(starship --version 2>/dev/null | head -1 || echo "未知版本")
+    STARSHIP_VERSION=$(starship --version 2>/dev/null | head -1 | awk '{print $2}')
     echo -e "  > starship: ${GREEN}已安装${NC} (${BLUE}$STARSHIP_VERSION${NC})"
     BINARY_INSTALLED=$((BINARY_INSTALLED + 1))
 else
@@ -127,7 +120,7 @@ fi
 # fnm
 BINARY_TOTAL=$((BINARY_TOTAL + 1))
 if [ -f "$HOME/.local/share/fnm/fnm" ]; then
-    FNM_VERSION=$($HOME/.local/share/fnm/fnm --version 2>/dev/null || echo "未知版本")
+    FNM_VERSION=$($HOME/.local/share/fnm/fnm --version 2>/dev/null | awk '{print $2}')
     echo -e "  > fnm: ${GREEN}已安装${NC} (${BLUE}$FNM_VERSION${NC})"
     BINARY_INSTALLED=$((BINARY_INSTALLED + 1))
 else
