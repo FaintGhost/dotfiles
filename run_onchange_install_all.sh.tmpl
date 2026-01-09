@@ -70,10 +70,72 @@ execute_with_loader "更新软件包列表" {{ $sudo }}apt update -y
 execute_with_loader "检查并同步基础工具" {{ $sudo }}apt install -y {{ .packages.linux.apt | join " " }}
 
 # ==========================================
-# 2. 脚本安装工具
+# 2. 声明式安装工具 (由 .chezmoiexternal 管理)
 # ==========================================
-echo -e "\n${BLUE}🚀 正在检查自定义开发工具...${NC}"
+echo -e "\n${BLUE}🔧 正在检查声明式开发工具...${NC}"
 command_exists() { command -v "$1" >/dev/null 2>&1; }
+
+# 统计变量
+BINARY_TOTAL=0
+BINARY_INSTALLED=0
+
+{{ range .packages.linux.binaries }}
+{{-   if eq . "uv" }}
+# uv & uvx
+BINARY_TOTAL=$((BINARY_TOTAL + 2))
+if command_exists uv; then
+    UV_VERSION=$(uv --version 2>/dev/null | head -1 || echo "未知版本")
+    echo -e "  > uv: ${GREEN}已安装${NC} (${BLUE}$UV_VERSION${NC})"
+    BINARY_INSTALLED=$((BINARY_INSTALLED + 1))
+else
+    echo -e "  > uv: ${YELLOW}未安装${NC} (将由 chezmoi external 下载)"
+fi
+
+if command_exists uvx; then
+    echo -e "  > uvx: ${GREEN}已安装${NC}"
+    BINARY_INSTALLED=$((BINARY_INSTALLED + 1))
+else
+    echo -e "  > uvx: ${YELLOW}未安装${NC} (将由 chezmoi external 下载)"
+fi
+{{-   end }}
+
+{{-   if eq . "bun" }}
+# bun
+BINARY_TOTAL=$((BINARY_TOTAL + 1))
+if [ -f "$HOME/.bun/bin/bun" ]; then
+    BUN_VERSION=$($HOME/.bun/bin/bun --version 2>/dev/null || echo "未知版本")
+    echo -e "  > bun: ${GREEN}已安装${NC} (${BLUE}$BUN_VERSION${NC})"
+    BINARY_INSTALLED=$((BINARY_INSTALLED + 1))
+else
+    echo -e "  > bun: ${YELLOW}未安装${NC} (将由 chezmoi external 下载)"
+fi
+{{-   end }}
+
+{{-   if eq . "starship" }}
+# starship
+BINARY_TOTAL=$((BINARY_TOTAL + 1))
+if command_exists starship; then
+    STARSHIP_VERSION=$(starship --version 2>/dev/null | head -1 || echo "未知版本")
+    echo -e "  > starship: ${GREEN}已安装${NC} (${BLUE}$STARSHIP_VERSION${NC})"
+    BINARY_INSTALLED=$((BINARY_INSTALLED + 1))
+else
+    echo -e "  > starship: ${YELLOW}未安装${NC} (将由 chezmoi external 下载)"
+fi
+{{-   end }}
+{{- end }}
+
+# 显示统计信息
+echo -e "  ${BLUE}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
+if [ $BINARY_INSTALLED -eq $BINARY_TOTAL ]; then
+    echo -e "  ${GREEN}✓${NC} 所有声明式工具已就绪 (${GREEN}${BINARY_INSTALLED}${NC}/${BINARY_TOTAL})"
+else
+    echo -e "  ${YELLOW}⚠${NC} 部分工具未安装 (${GREEN}${BINARY_INSTALLED}${NC}/${BINARY_TOTAL})"
+fi
+
+# ==========================================
+# 3. 脚本安装工具
+# ==========================================
+echo -e "\n${BLUE}🚀 正在检查脚本安装工具...${NC}"
 
 {{ range .packages.linux.installers }}
 if command_exists {{ . }}; then
@@ -91,7 +153,7 @@ fi
 {{ end }}
 
 # ==========================================
-# 3. 刷新与收尾
+# 4. 刷新与收尾
 # ==========================================
 echo -e "\n${BLUE}🎨 正在刷新系统缓存...${NC}"
 if command_exists fc-cache; then
