@@ -96,19 +96,10 @@ fi
 {{ end -}}
 
 # ==========================================
-# 3. 字体安装
+# 3. 字体缓存刷新
 # ==========================================
-echo -e "\n${BLUE}🎨 正在检查终端字体...${NC}"
-{{ range .packages.linux.fonts -}}
-FONT_NAME="{{ . }}"
-FONT_DIR="$HOME/.fonts/$FONT_NAME"
-
-if [ -d "$FONT_DIR" ]; then
-    echo -e "  > $FONT_NAME: ${GREEN}已存在${NC}"
-else
-    execute_with_loader "安装字体 $FONT_NAME" bash -c "mkdir -p $FONT_DIR && curl -L -s https://github.com/ryanoasis/nerd-fonts/releases/latest/download/${FONT_NAME}.zip -o ${FONT_NAME}.zip && unzip -o -q ${FONT_NAME}.zip -d $FONT_DIR/ && rm ${FONT_NAME}.zip && (fc-cache -f > /dev/null 2>&1 || true)"
-fi
-{{ end -}}
+echo -e "\n${BLUE}🎨 正在刷新字体缓存...${NC}"
+execute_with_loader "刷新字体缓存" fc-cache -f
 
 echo -e "\n${GREEN}🎉 所有声明式软件包同步完成！${NC}"
 {{- end -}}

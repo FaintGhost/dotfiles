@@ -1,0 +1,16 @@
+{{- /* 字体目录配置 */}}
+{{- $fontDir := "" }}
+{{- if eq .chezmoi.os "darwin" }}
+{{-   $fontDir = "Library/Fonts" }}
+{{- else if eq .chezmoi.os "linux" }}
+{{-   $fontDir = ".local/share/fonts" }}
+{{- end }}
+
+{{- /* Nerd Fonts 字体安装 */}}
+{{- range .packages.linux.fonts }}
+["{{ $fontDir }}/{{ . }}"]
+    type = "archive"
+    url = "https://github.com/ryanoasis/nerd-fonts/releases/download/{{ (gitHubLatestRelease "ryanoasis/nerd-fonts").TagName }}/{{ . }}.tar.xz"
+    exact = true
+    refreshPeriod = "168h"
+{{- end }}
