@@ -44,7 +44,7 @@ export NO_PROXY=localhost,127.0.0.1
 export OPENCODE_DISABLE_DEFAULT_PLUGINS={{ .custom.opencode.disable_default_plugins }}
 
 # 临时目录
-export TMPDIR="{{ .custom.tmpdir.path }}"
+export TMPDIR="$HOME/{{ .custom.tmpdir.path }}"
 mkdir -p "$TMPDIR"
 
 # ==========================================
@@ -56,7 +56,7 @@ export PATH="$HOME/.local/bin:$PATH"
 
 # 2. OpenCode 路径
 {{- if .custom.opencode.path }}
-export PATH="{{ .custom.opencode.path }}:$PATH"
+export PATH="$HOME/{{ .custom.opencode.path }}:$PATH"
 {{- end }}
 
 # 3. Neovim 额外路径（可选）
