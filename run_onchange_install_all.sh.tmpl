@@ -25,17 +25,13 @@ show_spinner() {
     printf "    \b\b\b\b"
 }
 
-# 辅助函数：执行带旋转器的命令
 execute_with_loader() {
     local msg=$1
     shift
     printf "  > %-30s" "$msg"
-    # 后台执行命令
     "$@" > /dev/null 2>&1 &
     local pid=$!
-    # 显示旋转器
     show_spinner $pid
-    # 等待命令结束并获取退出码
     wait $pid
     local exit_code=$?
     if [ $exit_code -eq 0 ]; then
@@ -47,17 +43,19 @@ execute_with_loader() {
 }
 
 # ==========================================
-# 0. 交互式代理配置
+# 0. 交互式代理配置 (仅在交互终端运行)
 # ==========================================
-echo -e "${BLUE}🌐 Network Configuration / 网络配置${NC}"
-echo "----------------------------------------"
-if read -r -p "❓ 是否需要代理? 请输入 IP:Port [留空回车直连]: " proxy_addr < /dev/tty; then
-    proxy_addr=$(echo "$proxy_addr" | xargs)
-    if [ -n "$proxy_addr" ]; then
-        export http_proxy="http://$proxy_addr"
-        export https_proxy="http://$proxy_addr"
-        export all_proxy="http://$proxy_addr"
-        echo -e "${GREEN}✅ 已临时启用代理: $proxy_addr${NC}"
+if [ -t 0 ]; then
+    echo -e "${BLUE}🌐 Network Configuration / 网络配置${NC}"
+    echo "----------------------------------------"
+    if read -t 10 -r -p "❓ 是否需要代理? 请输入 IP:Port [10s超时/留空回车直连]: " proxy_addr < /dev/tty; then
+        proxy_addr=$(echo "$proxy_addr" | xargs)
+        if [ -n "$proxy_addr" ]; then
+            export http_proxy="http://$proxy_addr"
+            export https_proxy="http://$proxy_addr"
+            export all_proxy="http://$proxy_addr"
+            echo -e "${GREEN}✅ 已临时启用代理: $proxy_addr${NC}"
+        fi
     fi
 fi
 
@@ -68,18 +66,17 @@ fi
 {{ if eq .chezmoi.username "root" -}}{{ $sudo = "" }}{{ end -}}
 
 echo -e "\n${BLUE}📦 正在同步系统基础软件包 (apt)...${NC}"
-
-# 使用自定义函数执行，带进度反馈
 execute_with_loader "更新软件包列表" {{ $sudo }}apt update -y
 execute_with_loader "检查并同步基础工具" {{ $sudo }}apt install -y {{ .packages.linux.apt | join " " }}
 
 # ==========================================
-# 2. 自定义工具安装
+# 2. 自定义工具安装 (复杂脚本类)
 # ==========================================
 echo -e "\n${BLUE}🚀 正在检查自定义开发工具...${NC}"
 command_exists() { command -v "$1" >/dev/null 2>&1; }
 
 {{ range .packages.linux.custom -}}
+{{- if ne . "uv" -}} {{ /* 跳过 uv，因为它已在 external 中处理 */ }}
 if ! command_exists {{ . }}; then
     {{ if eq . "starship" -}}
     execute_with_loader "安装 starship" bash -c "curl -sS https://starship.rs/install.sh | sh -s -- -y"
@@ -87,19 +84,20 @@ if ! command_exists {{ . }}; then
     execute_with_loader "安装 bun" bash -c "curl -fsSL https://bun.sh/install | bash"
     {{ else if eq . "fnm" -}}
     execute_with_loader "安装 fnm" bash -c "curl -fsSL https://fnm.vercel.app/install | bash"
-    {{ else if eq . "uv" -}}
-    execute_with_loader "安装 uv" bash -c "curl -LsSf https://astral.sh/uv/install.sh | sh"
     {{ end -}}
 else
     echo -e "  > {{ . }}: ${GREEN}已安装${NC}"
 fi
+{{- end -}}
 {{ end -}}
 
 # ==========================================
-# 3. 字体缓存刷新
+# 3. 刷新与收尾
 # ==========================================
-echo -e "\n${BLUE}🎨 正在刷新字体缓存...${NC}"
-execute_with_loader "刷新字体缓存" fc-cache -f
+echo -e "\n${BLUE}🎨 刷新系统缓存...${NC}"
+if command_exists fc-cache; then
+    execute_with_loader "刷新字体缓存" fc-cache -f
+fi
 
 echo -e "\n${GREEN}🎉 所有声明式软件包同步完成！${NC}"
 {{- end -}}

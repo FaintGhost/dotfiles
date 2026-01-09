@@ -1,22 +1,52 @@
-{{- /* 1. 定义变量并初始化 */ -}}
-{{- $fontDir := "" -}}
 {{- $osId := .chezmoi.os -}}
+{{- $arch := .chezmoi.arch -}}
 
-{{- /* 2. 根据操作系统设置相对路径，Windows 保持为空 */ -}}
+{{- /* 架构名称映射：Go 的 amd64/arm64 对应 uv 的 x86_64/aarch64 */ -}}
+{{- if eq $arch "amd64" }}{{ $arch = "x86_64" }}{{ end -}}
+{{- if eq $arch "arm64" }}{{ $arch = "aarch64" }}{{ end -}}
+
+{{- /* 1. 字体目录配置 */ -}}
+{{- $fontDir := "" -}}
 {{- if eq $osId "darwin" -}}
 {{-   $fontDir = "Library/Fonts" -}}
 {{- else if eq $osId "linux" -}}
 {{-   $fontDir = ".local/share/fonts" -}}
 {{- end -}}
 
-{{- /* 3. 只有当 fontDir 不为空（即非 Windows）时，才执行字体安装逻辑 */ -}}
-{{- if $fontDir -}}
-{{-   $version := (gitHubLatestRelease "ryanoasis/nerd-fonts").TagName -}}
-{{-   range .packages.linux.fonts -}}
+{{- /* 2. 只有非 Windows 系统才执行下载逻辑 */ -}}
+{{- if ne $osId "windows" -}}
+
+{{-   /* Nerd Fonts 字体安装 */ -}}
+{{-   if $fontDir -}}
+{{-     $version := (gitHubLatestRelease "ryanoasis/nerd-fonts").TagName -}}
+{{-     range .packages.linux.fonts -}}
 ["{{ $fontDir }}/{{ . }}"]
     type = "archive"
     url = "https://github.com/ryanoasis/nerd-fonts/releases/download/{{ $version }}/{{ . }}.tar.xz"
     exact = true
     refreshPeriod = "168h"
+{{-     end -}}
 {{-   end -}}
+
+{{-   /* uv 二进制安装 */ -}}
+{{-   $uvAsset := printf "uv-%s-unknown-linux-musl.tar.gz" $arch -}}
+{{-   if eq $osId "darwin" }}{{ $uvAsset = printf "uv-%s-apple-darwin.tar.gz" $arch }}{{ end -}}
+{{-   $uvUrl := gitHubLatestReleaseAssetURL "astral-sh/uv" $uvAsset -}}
+
+[".local/bin/uv"]
+    type = "archive-file"
+    url = {{ $uvUrl | quote }}
+    executable = true
+    path = "uv"
+    stripComponents = 1
+    refreshPeriod = "168h"
+
+[".local/bin/uvx"]
+    type = "archive-file"
+    url = {{ $uvUrl | quote }}
+    executable = true
+    path = "uvx"
+    stripComponents = 1
+    refreshPeriod = "168h"
+
 {{- end -}}

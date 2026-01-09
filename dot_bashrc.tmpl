@@ -27,13 +27,22 @@ cz() {
 export NO_PROXY=localhost,127.0.0.1
 export OPENCODE_DISABLE_DEFAULT_PLUGINS=1
 
+# Starship
 eval "$(starship init bash)"
+
+# uv & uvx (声明式安装路径在 ~/.local/bin)
+if [ -f "$HOME/.local/bin/uv" ]; then
+    export PATH="$HOME/.local/bin:$PATH"
+    eval "$(uv generate-shell-completion bash)"
+    eval "$(uvx --generate-shell-completion bash)"
+fi
 
 # bun
 export BUN_INSTALL="$HOME/.bun"
 export PATH="$BUN_INSTALL/bin:$PATH"
 
-. "$HOME/.local/bin/env"
+# 加载其他环境
+[ -f "$HOME/.local/bin/env" ] && . "$HOME/.local/bin/env"
 
 # fnm
 FNM_PATH="{{ .chezmoi.homeDir }}/.local/share/fnm"
