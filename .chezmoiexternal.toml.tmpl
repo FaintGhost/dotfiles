@@ -4,24 +4,28 @@
 {{- if eq $arch "arm64" }}{{ $arch = "aarch64" }}{{ end -}}
 
 {{- $fontDir := "" -}}
-{{- if eq $osId "darwin" }}{{ $fontDir = "Library/Fonts" -}}
-{{- else if eq $osId "linux" }}{{ $fontDir = ".local/share/fonts" -}}{{ end -}}
+{{- if eq $osId "darwin" }}{{ $fontDir = "Library/Fonts" }}{{ end -}}
+{{- if eq $osId "linux" }}{{ $fontDir = ".local/share/fonts" }}{{ end -}}
 
-{{- if ne $osId "windows" -}}
-{{-   if $fontDir -}}
-{{-     $nfVersion := (gitHubLatestRelease "ryanoasis/nerd-fonts").TagName -}}
+{{- if ne $osId "windows" }}
+{{-   if $fontDir }}
+{{-     $nfVersion := (gitHubLatestRelease "ryanoasis/nerd-fonts").TagName }}
 {{-     range .packages.linux.fonts }}
 ["{{ $fontDir }}/{{ . }}"]
     type = "archive"
     url = "https://github.com/ryanoasis/nerd-fonts/releases/download/{{ $nfVersion }}/{{ . }}.tar.xz"
     exact = true
     refreshPeriod = "168h"
-{{      end -}}
+{{      end }}
 {{-   end }}
 
-{{-   $uvAsset := printf "uv-%s-unknown-linux-musl.tar.gz" $arch -}}
-{{-   if eq $osId "darwin" }}{{ $uvAsset = printf "uv-%s-apple-darwin.tar.gz" $arch }}{{ end -}}
-{{-   $uvUrl := gitHubLatestReleaseAssetURL "astral-sh/uv" $uvAsset }}
+{{-   range .packages.linux.binaries }}
+
+{{-     /* === UV === */ -}}
+{{-     if eq . "uv" }}
+{{-       $uvAsset := printf "uv-%s-unknown-linux-musl.tar.gz" $arch }}
+{{-       if eq $osId "darwin" }}{{ $uvAsset = printf "uv-%s-apple-darwin.tar.gz" $arch }}{{ end }}
+{{-       $uvUrl := gitHubLatestReleaseAssetURL "astral-sh/uv" $uvAsset }}
 [".local/bin/uv"]
     type = "archive-file"
     url = {{ $uvUrl | quote }}
@@ -37,4 +41,7 @@
     path = "uvx"
     stripComponents = 1
     refreshPeriod = "168h"
-{{- end -}}
+{{-     end }}
+
+{{-   end }}
+{{- end }}

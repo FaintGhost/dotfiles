@@ -1,17 +1,15 @@
 packages:
   linux:
-    # 系统级基础工具 (apt)
     apt:
       - "curl"
       - "unzip"
       - "git"
       - "fontconfig"
-    # 自定义安装脚本的工具
-    custom:
+    binaries:
+      - "uv"
+    installers:
       - "starship"
       - "bun"
       - "fnm"
-      - "uv"
-    # 字体清单
     fonts:
       - "JetBrainsMono"
