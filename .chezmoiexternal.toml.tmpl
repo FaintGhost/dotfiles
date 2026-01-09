@@ -31,13 +31,10 @@
     stripComponents = 1
     refreshPeriod = "168h"
 
+# uvx 通过符号链接到 uv，避免重复下载
 [".local/bin/uvx"]
-    type = "archive-file"
-    url = {{ gitHubLatestReleaseAssetURL "astral-sh/uv" $uvAsset | quote }}
-    executable = true
-    path = "uvx"
-    stripComponents = 1
-    refreshPeriod = "168h"
+    type = "symlink"
+    target = ".local/bin/uv"
 {{-   end }}
 
 {{-   if eq . "bun" }}

@@ -1,6 +1,10 @@
 alias dc='docker compose'
-{{- /* Proxy alias */}}
-alias p='export http_proxy=http://192.168.50.254:2080;export https_proxy=http://192.168.50.254:2080;export all_proxy=http://192.168.50.254:2080'
+{{- /* Proxy alias - 使用环境变量配置 */}}
+{{- if .proxy.enabled }}
+alias p='export http_proxy={{ .proxy.http }};export https_proxy={{ .proxy.https }};export all_proxy={{ .proxy.https }}'
+{{- else }}
+alias p='echo "代理未启用，请在 .chezmoidata/env.yaml 中配置"'
+{{- end }}
 alias t='tmux'
 
 # 这是一个跨行且带逻辑的“高级版 alias”
@@ -24,35 +28,70 @@ cz() {
     return $exit_code
 }
 
+# ==========================================
+# 基础环境变量配置
+# ==========================================
+
+# 代理配置
+{{- if .proxy.enabled }}
+export http_proxy="{{ .proxy.http }}"
+export https_proxy="{{ .proxy.https }}"
+export all_proxy="{{ .proxy.https }}"
+{{- end }}
 export NO_PROXY=localhost,127.0.0.1
-export OPENCODE_DISABLE_DEFAULT_PLUGINS=1
 
-# Starship
-eval "$(starship init bash)"
+# OpenCode 配置
+export OPENCODE_DISABLE_DEFAULT_PLUGINS={{ .custom.opencode.disable_default_plugins }}
 
-# uv & uvx (声明式安装路径在 ~/.local/bin)
-if [ -f "$HOME/.local/bin/uv" ]; then
-    export PATH="$HOME/.local/bin:$PATH"
-    eval "$(uv generate-shell-completion bash)"
-    eval "$(uvx --generate-shell-completion bash)"
-fi
-
-# bun
-export BUN_INSTALL="$HOME/.bun"
-export PATH="$BUN_INSTALL/bin:$PATH"
-
-# 加载其他环境
-[ -f "$HOME/.local/bin/env" ] && . "$HOME/.local/bin/env"
-
-# fnm
-FNM_PATH="{{ .chezmoi.homeDir }}/.local/share/fnm"
-if [ -d "$FNM_PATH" ]; then
-  export PATH="$FNM_PATH:$PATH"
-  eval "`fnm env`"
-fi
-
-# opencode
-export PATH={{ .chezmoi.homeDir }}/.opencode/bin:$PATH
-export PATH="$PATH:/opt/nvim-linux-x86_64/bin"
-export TMPDIR="$HOME/.claude/tmp"
+# 临时目录
+export TMPDIR="{{ .custom.tmpdir.path }}"
 mkdir -p "$TMPDIR"
+
+# ==========================================
+# PATH 管理器（按优先级排序）
+# ==========================================
+
+# 1. 用户本地二进制文件（最高优先级）
+export PATH="$HOME/.local/bin:$PATH"
+
+# 2. OpenCode 路径
+{{- if .custom.opencode.path }}
+export PATH="{{ .custom.opencode.path }}:$PATH"
+{{- end }}
+
+# 3. Neovim 额外路径（可选）
+{{- if .custom.nvim.extra_path }}
+if [ -d "{{ .custom.nvim.extra_path }}" ]; then
+    export PATH="{{ .custom.nvim.extra_path }}:$PATH"
+fi
+{{- end }}
+
+# ==========================================
+# 开发工具初始化
+# ==========================================
+
+# Starship Prompt
+if command -v starship &> /dev/null; then
+    eval "$(starship init bash)"
+fi
+
+# uv & uvx (Python 包管理器)
+if command -v uv &> /dev/null; then
+    eval "$(uv generate-shell-completion bash)"
+    # uvx 通过 uv 自动处理，不需要单独的补全
+fi
+
+# bun (JavaScript 运行时)
+if [ -f "$HOME/.bun/bin/bun" ]; then
+    export BUN_INSTALL="$HOME/.bun"
+    export PATH="$BUN_INSTALL/bin:$PATH"
+fi
+
+# fnm (Node.js 版本管理器)
+if [ -f "$HOME/.local/share/fnm/fnm" ]; then
+    export PATH="$HOME/.local/share/fnm:$PATH"
+    eval "$(fnm env --use-on-cd)"
+fi
+
+# 加载其他本地环境变量（如果存在）
+[ -f "$HOME/.local/bin/env" ] && . "$HOME/.local/bin/env"

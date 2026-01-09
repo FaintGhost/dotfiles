@@ -1,4 +1,7 @@
 packages:
+  # ==========================================
+  # Linux 平台配置
+  # ==========================================
   linux:
     # 1. 系统级基础工具 (apt)
     apt:
@@ -20,3 +23,47 @@ packages:
     # 4. 字体
     fonts:
       - "JetBrainsMono"
+
+  # ==========================================
+  # macOS 平台配置
+  # ==========================================
+  darwin:
+    # 1. Homebrew packages
+    brews:
+      - "git"
+      - "vim"
+      - "curl"
+      - "unzip"
+
+    # 2. Homebrew casks
+    casks:
+
+    # 3. 二进制工具 (与 Linux 共享，由 .chezmoiexternal 处理)
+    binaries:
+      - "uv"
+      - "bun"
+      - "starship"
+      - "fnm"
+
+    # 4. 字体
+    fonts:
+      - "JetBrainsMono"
+
+  # ==========================================
+  # Windows 平台配置
+  # ==========================================
+  windows:
+    # 1. Scoop packages
+    scoop:
+      - "git"
+      - "vim"
+      - "curl"
+
+    # 2. 二进制工具 (与 Linux/macOS 共享)
+    binaries:
+      - "uv"
+      - "bun"
+      - "starship"
+
+    # 3. Windows 特定配置
+    installers:

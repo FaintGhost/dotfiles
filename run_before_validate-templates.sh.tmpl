@@ -1,0 +1,71 @@
+#!/bin/bash
+# 模板验证脚本
+# 在应用配置之前验证所有模板文件的语法正确性
+
+# 颜色定义
+GREEN='\033[0;32m'
+BLUE='\033[0;34m'
+RED='\033[0;31m'
+YELLOW='\033[1;33m'
+NC='\033[0m'
+
+echo -e "${BLUE}🔍 正在验证模板文件...${NC}"
+
+# 验证计数
+TOTAL=0
+PASSED=0
+FAILED=0
+
+# 验证函数
+validate_template() {
+    local file=$1
+    local description=$2
+
+    TOTAL=$((TOTAL + 1))
+    printf "  > 验证 %-30s" "$description"
+
+    if chezmoi execute-template < "$file" > /dev/null 2>&1; then
+        echo -e "${GREEN}✓ 通过${NC}"
+        PASSED=$((PASSED + 1))
+        return 0
+    else
+        echo -e "${RED}✗ 失败${NC}"
+        FAILED=$((FAILED + 1))
+        return 1
+    fi
+}
+
+echo -e "\n${BLUE}配置文件验证${NC}"
+echo "----------------------------------------"
+validate_template ".chezmoi.toml.tmpl" "主配置文件"
+validate_template ".chezmoiexternal.toml.tmpl" "外部资源配置"
+
+echo -e "\n${BLUE}脚本模板验证${NC}"
+echo "----------------------------------------"
+validate_template "dot_bashrc.tmpl" "Bash 配置"
+validate_template "dot_gitconfig.tmpl" "Git 配置"
+
+echo -e "\n${BLUE}数据文件验证${NC}"
+echo "----------------------------------------"
+TOTAL=$((TOTAL + 1))
+printf "  > 验证 %-30s" "数据文件"
+if chezmoi data > /dev/null 2>&1; then
+    echo -e "${GREEN}✓ 通过${NC}"
+    PASSED=$((PASSED + 1))
+else
+    echo -e "${RED}✗ 失败${NC}"
+    FAILED=$((FAILED + 1))
+fi
+
+# ==========================================
+# 显示总结
+# ==========================================
+echo -e "\n${BLUE}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
+if [ $FAILED -eq 0 ]; then
+    echo -e "${GREEN}✓ 所有验证通过 (${PASSED}/${TOTAL})${NC}"
+    exit 0
+else
+    echo -e "${RED}✗ 部分验证失败 (${PASSED}/${TOTAL}, ${FAILED} 失败)${NC}"
+    echo -e "${YELLOW}提示${NC}: 请检查模板语法和数据文件"
+    exit 1
+fi
