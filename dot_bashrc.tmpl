@@ -1,10 +1,4 @@
 alias dc='docker compose'
-{{- /* Proxy alias - 使用环境变量配置 */}}
-{{- if .proxy.enabled }}
-alias p='export http_proxy={{ .proxy.http }};export https_proxy={{ .proxy.https }};export all_proxy={{ .proxy.https }}'
-{{- else }}
-alias p='echo "代理未启用，请在 .chezmoidata/env.yaml 中配置"'
-{{- end }}
 alias t='tmux'
 
 # 这是一个跨行且带逻辑的“高级版 alias”
@@ -32,20 +26,18 @@ cz() {
 # 基础环境变量配置
 # ==========================================
 
-# 代理配置
-{{- if .proxy.enabled }}
-export http_proxy="{{ .proxy.http }}"
-export https_proxy="{{ .proxy.https }}"
-export all_proxy="{{ .proxy.https }}"
-{{- end }}
 export NO_PROXY=localhost,127.0.0.1
 
 # OpenCode 配置
+{{- if (and (hasKey . "custom") (hasKey .custom "opencode") (hasKey .custom.opencode "disable_default_plugins")) }}
 export OPENCODE_DISABLE_DEFAULT_PLUGINS={{ .custom.opencode.disable_default_plugins }}
+{{- end }}
 
 # 临时目录
+{{- if (and (hasKey . "custom") (hasKey .custom "tmpdir") (hasKey .custom.tmpdir "path")) }}
 export TMPDIR="$HOME/{{ .custom.tmpdir.path }}"
 mkdir -p "$TMPDIR"
+{{- end }}
 
 # ==========================================
 # PATH 管理器（按优先级排序）
@@ -55,12 +47,12 @@ mkdir -p "$TMPDIR"
 export PATH="$HOME/.local/bin:$PATH"
 
 # 2. OpenCode 路径
-{{- if .custom.opencode.path }}
+{{- if (and (hasKey . "custom") (hasKey .custom "opencode") (hasKey .custom.opencode "path")) }}
 export PATH="$HOME/{{ .custom.opencode.path }}:$PATH"
 {{- end }}
 
 # 3. Neovim 额外路径（可选）
-{{- if .custom.nvim.extra_path }}
+{{- if (and (hasKey . "custom") (hasKey .custom "nvim") (hasKey .custom.nvim "extra_path")) }}
 if [ -d "{{ .custom.nvim.extra_path }}" ]; then
     export PATH="{{ .custom.nvim.extra_path }}:$PATH"
 fi
