@@ -1,25 +1,23 @@
 alias dc='docker compose'
 alias t='tmux'
+alias p=alias p='export http_proxy=http://192.168.50.254:2080;export https_proxy=http://192.168.50.254:2080;export all_proxy=http://192.168.50.254:2080'
 
 # 这是一个跨行且带逻辑的“高级版 alias”
 cz() {
-    # 1. 执行命令
-    chezmoi "$@"
-    
-    # 2. 捕获状态
-    local exit_code=$?
-    
-    # 3. 跨行逻辑判断
-    if [ $exit_code -eq 0 ]; then
-        case "$1" in
-            apply|update|init)
-                echo "🚀 正在自动刷新环境..."
-                source "$HOME/.bashrc"
-                ;;
-        esac
-    fi
-    
-    return $exit_code
+  # 1. 执行命令
+  chezmoi "$@"
+  # 2. 捕获状态
+  local exit_code=$?
+  # 3. 跨行逻辑判断
+  if [ $exit_code -eq 0 ]; then
+    case "$1" in
+      apply|update|init)
+        echo "🚀 正在自动刷新环境..."
+        source "$HOME/.bashrc"
+        ;;
+    esac
+  fi
+  return $exit_code
 }
 
 # ==========================================
@@ -28,35 +26,8 @@ cz() {
 
 export NO_PROXY=localhost,127.0.0.1
 
-# OpenCode 配置
-{{- if (and (hasKey . "custom") (hasKey .custom "opencode") (hasKey .custom.opencode "disable_default_plugins")) }}
-export OPENCODE_DISABLE_DEFAULT_PLUGINS={{ .custom.opencode.disable_default_plugins }}
-{{- end }}
-
-# 临时目录
-{{- if (and (hasKey . "custom") (hasKey .custom "tmpdir") (hasKey .custom.tmpdir "path")) }}
-export TMPDIR="$HOME/{{ .custom.tmpdir.path }}"
-mkdir -p "$TMPDIR"
-{{- end }}
-
-# ==========================================
-# PATH 管理器（按优先级排序）
-# ==========================================
-
-# 1. 用户本地二进制文件（最高优先级）
+# 用户本地二进制文件（最高优先级）
 export PATH="$HOME/.local/bin:$PATH"
-
-# 2. OpenCode 路径
-{{- if (and (hasKey . "custom") (hasKey .custom "opencode") (hasKey .custom.opencode "path")) }}
-export PATH="$HOME/{{ .custom.opencode.path }}:$PATH"
-{{- end }}
-
-# 3. Neovim 额外路径（可选）
-{{- if (and (hasKey . "custom") (hasKey .custom "nvim") (hasKey .custom.nvim "extra_path")) }}
-if [ -d "{{ .custom.nvim.extra_path }}" ]; then
-    export PATH="{{ .custom.nvim.extra_path }}:$PATH"
-fi
-{{- end }}
 
 # ==========================================
 # 开发工具初始化
@@ -64,25 +35,24 @@ fi
 
 # Starship Prompt
 if command -v starship &> /dev/null; then
-    eval "$(starship init bash)"
+  eval "$(starship init bash)"
 fi
 
 # uv & uvx (Python 包管理器)
 if command -v uv &> /dev/null; then
-    eval "$(uv generate-shell-completion bash)"
-    # uvx 通过 uv 自动处理，不需要单独的补全
+  eval "$(uv generate-shell-completion bash)"
 fi
 
 # bun (JavaScript 运行时)
 if [ -f "$HOME/.bun/bin/bun" ]; then
-    export BUN_INSTALL="$HOME/.bun"
-    export PATH="$BUN_INSTALL/bin:$PATH"
+  export BUN_INSTALL="$HOME/.bun"
+  export PATH="$BUN_INSTALL/bin:$PATH"
 fi
 
 # fnm (Node.js 版本管理器)
 if [ -f "$HOME/.local/share/fnm/fnm" ]; then
-    export PATH="$HOME/.local/share/fnm:$PATH"
-    eval "$(fnm env --use-on-cd)"
+  export PATH="$HOME/.local/share/fnm:$PATH"
+  eval "$(fnm env --use-on-cd)"
 fi
 
 # 加载其他本地环境变量（如果存在）
