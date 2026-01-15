@@ -1,0 +1,41 @@
+#!/bin/bash
+# hash: {{ joinPath .chezmoi.homeDir ".llm/skills" | lstat | toJson | sha256sum }}
+
+set -euo pipefail
+
+SOURCE_DIR="{{ .chezmoi.homeDir }}/.llm/skills"
+TARGET_DIRS=(
+    "{{ .chezmoi.homeDir }}/.claude/skills"
+    "{{ .chezmoi.homeDir }}/.factory/skills"
+    "{{ .chezmoi.homeDir }}/.gemini/antigravity/skills"
+)
+
+# Check if source directory exists
+if [[ ! -d "$SOURCE_DIR" ]]; then
+    echo "Source directory $SOURCE_DIR does not exist, skipping symlink creation"
+    exit 0
+fi
+
+for target in "${TARGET_DIRS[@]}"; do
+    # Create parent directory if it doesn't exist
+    parent_dir=$(dirname "$target")
+    if [[ ! -d "$parent_dir" ]]; then
+        echo "Creating parent directory: $parent_dir"
+        mkdir -p "$parent_dir"
+    fi
+
+    # Remove existing symlink or directory
+    if [[ -L "$target" ]]; then
+        echo "Removing existing symlink: $target"
+        rm "$target"
+    elif [[ -d "$target" ]]; then
+        echo "Warning: $target exists as a directory, skipping"
+        continue
+    fi
+
+    # Create symlink
+    echo "Creating symlink: $target -> $SOURCE_DIR"
+    ln -s "$SOURCE_DIR" "$target"
+done
+
+echo "Symlinks created successfully"
