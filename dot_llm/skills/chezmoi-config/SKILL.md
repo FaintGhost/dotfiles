@@ -16,6 +16,7 @@ Comprehensive guide for managing chezmoi dotfiles with templates, scripts, exter
 NEVER execute these commands - they will modify your system:
 - `chezmoi apply` - Applies changes to your home directory
 - `chezmoi apply --force` - Forcefully applies changes
+- `chezmoi update` - Updates source state from repository and applies changes (AUTOMATICALLY runs chezmoi apply)
 - Any operations that directly execute scripts (scripts run automatically during `chezmoi apply`)
 
 ### Allowed Safe Operations
