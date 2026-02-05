@@ -11,17 +11,17 @@ cd "{{ .chezmoi.sourceDir }}" || true
 # 0. 交互式代理配置
 # ==========================================
 if [ -t 0 ]; then
-    echo -e "${BLUE}🌐 Network Configuration / 网络配置${NC}"
-    echo "----------------------------------------"
-    if read -t 10 -r -p "❓ 是否需要代理? 请输入 IP:Port [10s超时/直接回车跳过]: " proxy_addr < /dev/tty; then
+    print_header "🌐 网络配置"
+    if read -t 10 -r -p "  ? 代理地址 [IP:Port，回车跳过]: " proxy_addr < /dev/tty; then
         proxy_addr=$(echo "$proxy_addr" | xargs)
         if [ -n "$proxy_addr" ]; then
             export http_proxy="http://$proxy_addr"
             export https_proxy="http://$proxy_addr"
             export all_proxy="http://$proxy_addr"
-            echo -e "${GREEN}✅ 已临时启用代理: $proxy_addr${NC}"
+            print_ok "已启用代理: $proxy_addr"
         fi
     fi
+    echo ""
 fi
 
 # ==========================================
@@ -30,9 +30,8 @@ fi
 {{ $sudo := "sudo " -}}
 {{ if eq .chezmoi.username "root" -}}{{ $sudo = "" }}{{ end -}}
 
-echo -e "\n${BLUE}📦 正在同步系统基础软件包 (apt)...${NC}"
-execute_with_loader "更新软件包列表" {{ $sudo }}apt update -y
-execute_with_loader "检查并同步基础工具" {{ $sudo }}apt install -y {{ .packages.linux.apt | join " " }}
-
-echo -e "\n${GREEN}✓ 系统基础软件包同步完成${NC}"
+print_header "📦 安装系统基础软件包"
+run_task "更新软件包列表" {{ $sudo }}apt update -y
+run_task "安装基础工具" {{ $sudo }}apt install -y {{ .packages.linux.apt | join " " }}
+print_done "系统基础软件包安装完成"
 {{- end -}}

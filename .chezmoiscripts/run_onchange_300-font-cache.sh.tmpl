@@ -13,7 +13,7 @@ cd "{{ .chezmoi.sourceDir }}" || true
 FONT_DIR="$HOME/.local/share/fonts"
 NERD_FONTS_URL="https://github.com/ryanoasis/nerd-fonts/releases/latest/download"
 
-echo -e "${BLUE}🎨 正在配置 Nerd Fonts...${NC}"
+print_header "🎨 配置 Nerd Fonts"
 
 # 创建字体目录
 mkdir -p "$FONT_DIR"
@@ -25,12 +25,12 @@ FONT_SUBDIR="$FONT_DIR/$FONT_NAME"
 
 # 检查字体是否已安装
 if [ -d "$FONT_SUBDIR" ] && [ "$(ls -A "$FONT_SUBDIR" 2>/dev/null)" ]; then
-    echo -e "  ${GREEN}✓${NC} $FONT_NAME 已安装"
+    print_ok "$FONT_NAME 已安装"
 else
-    echo -e "  ${YELLOW}⚡${NC} 正在安装 $FONT_NAME..."
+    print_warn "正在安装 $FONT_NAME..."
 
     # 下载字体
-    printf "    > %-26s" "下载 $FONT_NAME"
+    printf "  > %-${LABEL_WIDTH}s" "下载 $FONT_NAME"
     if curl -fsSL -o "/tmp/$FONT_ZIP" "$NERD_FONTS_URL/$FONT_ZIP" 2>/dev/null; then
         echo -e "${GREEN}完成${NC}"
     else
@@ -39,7 +39,7 @@ else
     fi
 
     # 解压字体
-    printf "    > %-26s" "解压 $FONT_NAME"
+    printf "  > %-${LABEL_WIDTH}s" "解压 $FONT_NAME"
     mkdir -p "$FONT_SUBDIR"
     if unzip -q -o "/tmp/$FONT_ZIP" -d "$FONT_SUBDIR" 2>/dev/null; then
         echo -e "${GREEN}完成${NC}"
@@ -51,24 +51,18 @@ else
 
     # 清理
     rm -f "/tmp/$FONT_ZIP"
-    echo -e "    ${GREEN}✓${NC} $FONT_NAME 安装完成"
+    print_ok "$FONT_NAME 安装完成"
 fi
 {{ end }}
 
 # ==========================================
 # 刷新字体缓存
 # ==========================================
-echo -e "${BLUE}🔄 正在刷新字体缓存...${NC}"
 if command -v fc-cache &> /dev/null; then
-    printf "  > %-28s" "刷新字体缓存"
-    if fc-cache -f > /dev/null 2>&1; then
-        echo -e "${GREEN}完成${NC}"
-    else
-        echo -e "${YELLOW}跳过${NC}"
-    fi
+    run_task_skip "刷新字体缓存" fc-cache -f
 else
-    echo -e "  ${YELLOW}⚠${NC} fc-cache 未安装，跳过"
+    print_warn "fc-cache 未安装，跳过缓存刷新"
 fi
 
-echo -e "${GREEN}✓ 字体配置完成${NC}"
+print_done "字体配置完成"
 {{- end -}}

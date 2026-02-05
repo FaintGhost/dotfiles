@@ -9,6 +9,9 @@ YELLOW='\033[1;33m'
 RED='\033[0;31m'
 NC='\033[0m'
 
+# 统一宽度（考虑中文字符）
+LABEL_WIDTH=32
+
 # 进度旋转器
 show_spinner() {
     local pid=$1
@@ -25,10 +28,10 @@ show_spinner() {
 }
 
 # 带进度显示执行命令（成功/失败）
-execute_with_loader() {
+run_task() {
     local msg=$1
     shift
-    printf "  > %-30s" "$msg"
+    printf "  > %-${LABEL_WIDTH}s" "$msg"
     "$@" > /dev/null 2>&1 &
     local pid=$!
     show_spinner "$pid"
@@ -43,10 +46,10 @@ execute_with_loader() {
 }
 
 # 带进度显示执行命令（成功/跳过）
-execute_with_loader_skip() {
+run_task_skip() {
     local msg=$1
     shift
-    printf "  > %-30s" "$msg"
+    printf "  > %-${LABEL_WIDTH}s" "$msg"
     "$@" > /dev/null 2>&1 &
     local pid=$!
     show_spinner "$pid"
@@ -58,4 +61,24 @@ execute_with_loader_skip() {
         echo -e "${YELLOW}跳过${NC}"
     fi
     return $exit_code
+}
+
+# 打印标题
+print_header() {
+    echo -e "${BLUE}$1${NC}"
+}
+
+# 打印成功状态
+print_ok() {
+    echo -e "  ${GREEN}✓${NC} $1"
+}
+
+# 打印警告状态
+print_warn() {
+    echo -e "  ${YELLOW}⚡${NC} $1"
+}
+
+# 打印完成信息
+print_done() {
+    echo -e "  ${GREEN}✓ $1${NC}"
 }
