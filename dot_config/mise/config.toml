@@ -3,3 +3,11 @@ bun = "latest"
 go = "latest"
 node = "22"
 uv = "latest"
+
+[tasks]
+setup = "mise install"
+update = "mise upgrade"
+which = "mise where"
+
+[env]
+GOPATH = "/root/.local/share/go"
