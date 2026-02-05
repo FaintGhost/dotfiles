@@ -26,8 +26,13 @@ cz() {
 
 export NO_PROXY=localhost,127.0.0.1
 
-# 用户本地二进制文件（最高优先级）
-export PATH="$HOME/.local/bin:$PATH"
+# PATH 去重添加函数
+prepend_path() {
+  case ":${PATH}:" in
+    *:"$1":*) ;;  # 已存在，跳过
+    *) export PATH="$1:$PATH" ;;
+  esac
+}
 
 # ==========================================
 # 开发工具初始化
@@ -38,25 +43,11 @@ if command -v starship &> /dev/null; then
   eval "$(starship init bash)"
 fi
 
-# uv & uvx (Python 包管理器)
-if command -v uv &> /dev/null; then
-  eval "$(uv generate-shell-completion bash)"
-fi
-
-# bun (JavaScript 运行时)
-if [ -f "$HOME/.bun/bin/bun" ]; then
-  export BUN_INSTALL="$HOME/.bun"
-  export PATH="$BUN_INSTALL/bin:$PATH"
-fi
-
-# fnm (Node.js 版本管理器)
-if [ -f "$HOME/.local/share/fnm/fnm" ]; then
-  export PATH="$HOME/.local/share/fnm:$PATH"
-  eval "$(fnm env --use-on-cd)"
-fi
-
 # opencode
-export PATH=/root/.opencode/bin:$PATH
+prepend_path "$HOME/.opencode/bin"
 
-# 加载其他本地环境变量（如果存在）
-[ -f "$HOME/.local/bin/env" ] && . "$HOME/.local/bin/env"
+# 用户本地二进制文件
+prepend_path "$HOME/.local/bin"
+
+# mise shims (用于所有环境)
+prepend_path "$HOME/.local/share/mise/shims"
