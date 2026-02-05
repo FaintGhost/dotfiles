@@ -3,54 +3,16 @@
 # 字体缓存刷新脚本
 # 用于在安装新字体后刷新系统字体缓存
 
-# 切换到 chezmoi 源目录（如果需要访问源文件）
 cd "{{ .chezmoi.sourceDir }}" || true
 
-# 颜色定义
-GREEN='\033[0;32m'
-BLUE='\033[0;34m'
-NC='\033[0m'
-
-# ==========================================
-# 辅助函数：进度旋转器
-# ==========================================
-show_spinner() {
-    local pid=$1
-    local delay=0.1
-    local spinstr='|/-\'
-    while kill -0 "$pid" 2>/dev/null; do
-        local temp=${spinstr#?}
-        printf " [%c]  " "$spinstr"
-        spinstr=$temp${spinstr%"$temp"}
-        sleep $delay
-        printf "\b\b\b\b\b\b"
-    done
-    printf "    \b\b\b\b"
-}
-
-execute_with_loader() {
-    local msg=$1
-    shift
-    printf "  > %-30s" "$msg"
-    "$@" > /dev/null 2>&1 &
-    local pid=$!
-    show_spinner "$pid"
-    wait "$pid"
-    local exit_code=$?
-    if [ $exit_code -eq 0 ]; then
-        echo -e "${GREEN}完成${NC}"
-    else
-        echo -e "${GREEN}跳过${NC}"
-    fi
-    return $exit_code
-}
+{{ template "script-utils.sh" . }}
 
 # ==========================================
 # 刷新字体缓存
 # ==========================================
 echo -e "${BLUE}🎨 正在刷新系统缓存...${NC}"
-if command -v fc-cache; then
-    execute_with_loader "刷新字体缓存" fc-cache -f
+if command -v fc-cache &> /dev/null; then
+    execute_with_loader_skip "刷新字体缓存" fc-cache -f
     echo -e "${GREEN}✓ 字体缓存已刷新${NC}"
 else
     echo -e "${GREEN}✓ fc-cache 未安装，跳过字体缓存刷新${NC}"

@@ -3,49 +3,9 @@
 # 系统级基础软件包安装脚本
 # 用于安装通过 apt 管理的基础工具
 
-# 切换到 chezmoi 源目录（如果需要访问源文件）
 cd "{{ .chezmoi.sourceDir }}" || true
 
-# 颜色定义
-GREEN='\033[0;32m'
-BLUE='\033[0;34m'
-YELLOW='\033[1;33m'
-RED='\033[0;31m'
-NC='\033[0m'
-
-# ==========================================
-# 辅助函数：进度旋转器
-# ==========================================
-show_spinner() {
-    local pid=$1
-    local delay=0.1
-    local spinstr='|/-\'
-    while kill -0 "$pid" 2>/dev/null; do
-        local temp=${spinstr#?}
-        printf " [%c]  " "$spinstr"
-        spinstr=$temp${spinstr%"$temp"}
-        sleep $delay
-        printf "\b\b\b\b\b\b"
-    done
-    printf "    \b\b\b\b"
-}
-
-execute_with_loader() {
-    local msg=$1
-    shift
-    printf "  > %-30s" "$msg"
-    "$@" > /dev/null 2>&1 &
-    local pid=$!
-    show_spinner "$pid"
-    wait "$pid"
-    local exit_code=$?
-    if [ $exit_code -eq 0 ]; then
-        echo -e "${GREEN}完成${NC}"
-    else
-        echo -e "${RED}失败${NC}"
-    fi
-    return $exit_code
-}
+{{ template "script-utils.sh" . }}
 
 # ==========================================
 # 0. 交互式代理配置

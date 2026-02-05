@@ -1,0 +1,53 @@
+{{- if eq .chezmoi.os "linux" -}}
+#!/bin/bash
+# mise 版本管理器安装脚本
+# 用于安装和更新 mise (https://mise.jdx.dev)
+
+cd "{{ .chezmoi.sourceDir }}" || true
+
+{{ template "script-utils.sh" . }}
+
+# ==========================================
+# mise 安装
+# ==========================================
+{{ $sudo := "sudo " -}}
+{{ if eq .chezmoi.username "root" -}}{{ $sudo = "" }}{{ end -}}
+
+echo -e "\n${BLUE}🔧 正在配置 mise 版本管理器...${NC}"
+
+# 检查是否已安装
+if command -v mise &> /dev/null; then
+    echo -e "  ${GREEN}✓ mise 已安装 ($(mise --version | head -1))${NC}"
+else
+    echo -e "  ${YELLOW}⚡ mise 未安装，开始安装...${NC}"
+
+    # 安装依赖
+    execute_with_loader "安装依赖 (curl)" {{ $sudo }}apt install -y curl
+
+    # 配置 APT 仓库
+    execute_with_loader "创建 keyrings 目录" {{ $sudo }}install -dm 755 /etc/apt/keyrings
+
+    # 下载 GPG 密钥
+    printf "  > %-30s" "下载 GPG 密钥"
+    curl -fSs https://mise.jdx.dev/gpg-key.pub | {{ $sudo }}tee /etc/apt/keyrings/mise-archive-keyring.asc > /dev/null 2>&1
+    echo -e "${GREEN}完成${NC}"
+
+    # 添加 APT 源
+    printf "  > %-30s" "添加 APT 源"
+    echo "deb [signed-by=/etc/apt/keyrings/mise-archive-keyring.asc] https://mise.jdx.dev/deb stable main" | {{ $sudo }}tee /etc/apt/sources.list.d/mise.list > /dev/null
+    echo -e "${GREEN}完成${NC}"
+
+    # 更新并安装
+    execute_with_loader "更新软件包列表" {{ $sudo }}apt update -y
+    execute_with_loader "安装 mise" {{ $sudo }}apt install -y mise
+
+    echo -e "  ${GREEN}✓ mise 安装完成${NC}"
+fi
+
+# 生成 shims
+if command -v mise &> /dev/null; then
+    execute_with_loader_skip "生成 shims" mise reshim
+fi
+
+echo -e "${GREEN}✓ mise 配置完成${NC}"
+{{- end -}}
