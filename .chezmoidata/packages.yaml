@@ -5,10 +5,7 @@ packages:
       - "unzip"
       - "git"
       - "fontconfig"
-    binaries:
-      - "uv"
-      - "bun"
-      - "starship"
-      - "fnm"
+      - "wget"
+      - "lsof"
     fonts:
       - "JetBrainsMono"
