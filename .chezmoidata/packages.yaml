@@ -7,5 +7,7 @@ packages:
       - "fontconfig"
       - "wget"
       - "lsof"
+      - "tmux"
+      - "starship"
     fonts:
       - "JetBrainsMono"
