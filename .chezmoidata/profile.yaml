@@ -1,0 +1,11 @@
+profile:
+  shell:
+    term_fallback: "xterm-256color"
+    proxy:
+      http: "http://192.168.50.254:2080"
+      https: "http://192.168.50.254:2080"
+      all: "http://192.168.50.254:2080"
+  git:
+    user:
+      name: "FaintGhost"
+      email: "zhang.yaowei@live.com"

@@ -1,37 +1,40 @@
 {{- if eq .chezmoi.os "linux" -}}
 #!/bin/bash
 # 系统级基础软件包安装脚本
-# 用于安装通过 apt 管理的基础工具
+# 目前按操作系统分层；当前仅实现 Linux 安装链路
 
-cd "{{ .chezmoi.sourceDir }}" || true
+cd "{{ .chezmoi.sourceDir }}" || exit 1
+set -euo pipefail
 
 {{ template "script-utils.sh" . }}
+
+{{- $sudo := "sudo " -}}
+{{- if eq .chezmoi.username "root" -}}{{ $sudo = "" }}{{ end -}}
+{{- $system := .packages.linux.system -}}
 
 # ==========================================
 # 0. 交互式代理配置
 # ==========================================
 if [ -t 0 ]; then
-    print_header "🌐 网络配置"
-    if read -t 10 -r -p "  ? 代理地址 [IP:Port，回车跳过]: " proxy_addr < /dev/tty; then
-        proxy_addr=$(echo "$proxy_addr" | xargs)
-        if [ -n "$proxy_addr" ]; then
-            export http_proxy="http://$proxy_addr"
-            export https_proxy="http://$proxy_addr"
-            export all_proxy="http://$proxy_addr"
-            print_ok "已启用代理: $proxy_addr"
-        fi
+  print_header "🌐 网络配置"
+  if read -t 10 -r -p "  ? 代理地址 [IP:Port，回车跳过]: " proxy_addr < /dev/tty; then
+    proxy_addr=$(echo "$proxy_addr" | xargs)
+    if [ -n "$proxy_addr" ]; then
+      export http_proxy="http://$proxy_addr"
+      export https_proxy="http://$proxy_addr"
+      export all_proxy="http://$proxy_addr"
+      print_ok "已启用代理: $proxy_addr"
     fi
-    echo ""
+  fi
+  echo ""
 fi
 
 # ==========================================
-# 1. 基础工具安装 (APT)
+# 1. 基础工具安装
 # ==========================================
-{{ $sudo := "sudo " -}}
-{{ if eq .chezmoi.username "root" -}}{{ $sudo = "" }}{{ end -}}
-
 print_header "📦 安装系统基础软件包"
-run_task "更新软件包列表" {{ $sudo }}apt update -y
-run_task "安装基础工具" {{ $sudo }}apt install -y {{ .packages.linux.apt | join " " }}
+print_ok "包策略: linux / {{ $system.manager }}"
+run_task "更新软件包列表" {{ $sudo }}{{ $system.manager }} {{ $system.update_args | join " " }} || exit 1
+run_task "安装基础工具" {{ $sudo }}{{ $system.manager }} {{ $system.install_args | join " " }} {{ $system.packages | join " " }} || exit 1
 print_done "系统基础软件包安装完成"
 {{- end -}}

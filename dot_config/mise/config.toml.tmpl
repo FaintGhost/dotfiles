@@ -10,4 +10,4 @@ update = "mise upgrade"
 which = "mise where"
 
 [env]
-GOPATH = "/root/.local/share/go"
+GOPATH = "{{ joinPath .chezmoi.homeDir ".local/share/go" }}"

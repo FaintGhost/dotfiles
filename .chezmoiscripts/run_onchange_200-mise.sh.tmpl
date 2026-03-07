@@ -1,53 +1,31 @@
 {{- if eq .chezmoi.os "linux" -}}
 #!/bin/bash
 # mise 版本管理器安装脚本
-# 用于安装和更新 mise (https://mise.jdx.dev)
+# 用于确保 mise 本体与声明工具就绪
 
-cd "{{ .chezmoi.sourceDir }}" || true
+cd "{{ .chezmoi.sourceDir }}" || exit 1
+set -euo pipefail
 
 {{ template "script-utils.sh" . }}
 
 # ==========================================
 # mise 安装
 # ==========================================
-{{ $sudo := "sudo " -}}
-{{ if eq .chezmoi.username "root" -}}{{ $sudo = "" }}{{ end -}}
+{{- $sudo := "sudo " -}}
+{{- if eq .chezmoi.username "root" -}}{{ $sudo = "" }}{{ end -}}
 
 print_header "🔧 配置 mise 版本管理器"
+run_task "创建 keyrings 目录" {{ $sudo }}install -dm 755 /etc/apt/keyrings || exit 1
+run_task "下载 GPG 密钥" bash -c 'curl -fSs {{ .packages.linux.mise.gpg_key_url }} | {{ $sudo }}tee /etc/apt/keyrings/mise-archive-keyring.asc > /dev/null' || exit 1
+run_task "添加 APT 源" bash -c 'echo "{{ .packages.linux.mise.source_line }}" | {{ $sudo }}tee /etc/apt/sources.list.d/mise.list > /dev/null' || exit 1
+run_task "更新软件包列表" {{ $sudo }}apt update -y || exit 1
+run_task "安装 mise" {{ $sudo }}apt install -y {{ .packages.linux.mise.package_name }} || exit 1
+print_ok "mise 当前版本: $(mise --version | head -1)"
 
-# 检查是否已安装
-if command -v mise &> /dev/null; then
-    print_ok "mise 已安装 ($(mise --version | head -1))"
-else
-    print_warn "mise 未安装，开始安装..."
-    run_task "安装依赖 (curl)" {{ $sudo }}apt install -y curl
-    run_task "创建 keyrings 目录" {{ $sudo }}install -dm 755 /etc/apt/keyrings
-
-    # 下载 GPG 密钥
-    printf "  > %-${LABEL_WIDTH}s" "下载 GPG 密钥"
-    if curl -fSs https://mise.jdx.dev/gpg-key.pub | {{ $sudo }}tee /etc/apt/keyrings/mise-archive-keyring.asc > /dev/null 2>&1; then
-        echo -e "${GREEN}完成${NC}"
-    else
-        echo -e "${RED}失败${NC}"
-    fi
-
-    # 添加 APT 源
-    printf "  > %-${LABEL_WIDTH}s" "添加 APT 源"
-    if echo "deb [signed-by=/etc/apt/keyrings/mise-archive-keyring.asc] https://mise.jdx.dev/deb stable main" | {{ $sudo }}tee /etc/apt/sources.list.d/mise.list > /dev/null; then
-        echo -e "${GREEN}完成${NC}"
-    else
-        echo -e "${RED}失败${NC}"
-    fi
-
-    run_task "更新软件包列表" {{ $sudo }}apt update -y
-    run_task "安装 mise" {{ $sudo }}apt install -y mise
-    print_ok "mise 安装完成"
-fi
-
-# 生成 shims
-if command -v mise &> /dev/null; then
-    run_task_skip "生成 shims" mise reshim
-fi
+{{- if .packages.linux.mise.install_declared_tools }}
+run_task "安装声明工具" mise install || exit 1
+{{- end }}
+run_task_skip "生成 shims" mise reshim
 
 print_done "mise 配置完成"
 {{- end -}}

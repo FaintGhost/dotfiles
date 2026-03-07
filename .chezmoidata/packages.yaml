@@ -1,13 +1,37 @@
 packages:
   linux:
-    apt:
-      - "curl"
-      - "unzip"
-      - "git"
-      - "fontconfig"
-      - "wget"
-      - "lsof"
-      - "tmux"
-      - "starship"
+    system:
+      manager: "apt"
+      update_args:
+        - "update"
+        - "-y"
+      install_args:
+        - "install"
+        - "-y"
+      packages:
+        - "curl"
+        - "unzip"
+        - "git"
+        - "fontconfig"
+        - "wget"
+        - "lsof"
+        - "tmux"
+        - "starship"
+    mise:
+      package_name: "mise"
+      gpg_key_url: "https://mise.jdx.dev/gpg-key.pub"
+      source_line: "deb [signed-by=/etc/apt/keyrings/mise-archive-keyring.asc] https://mise.jdx.dev/deb stable main"
+      install_declared_tools: true
     fonts:
-      - "JetBrainsMono"
+      - name: "JetBrainsMono"
+        version: "3.4.0"
+  windows:
+    system:
+      manager: "winget"
+      placeholder: true
+      packages: []
+  macos:
+    system:
+      manager: "brew"
+      placeholder: true
+      packages: []

@@ -1,6 +1,6 @@
 [user]
-  name = FaintGhost
-  email = zhang.yaowei@live.com
+  name = {{ .profile.git.user.name }}
+  email = {{ .profile.git.user.email }}
 
 [core]
 {{- if eq .chezmoi.os "windows" }}
@@ -16,7 +16,7 @@
 
 [credential "https://github.com"]
   helper =
-  helper = !/usr/bin/gh auth git-credential
+  helper = !gh auth git-credential
 [credential "https://gist.github.com"]
   helper =
-  helper = !/usr/bin/gh auth git-credential
+  helper = !gh auth git-credential
