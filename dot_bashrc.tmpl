@@ -1,6 +1,7 @@
 alias dc='docker compose'
 alias t='tmux'
 alias p=alias p='export http_proxy=http://192.168.50.254:2080;export https_proxy=http://192.168.50.254:2080;export all_proxy=http://192.168.50.254:2080'
+export TERM=xterm-256color
 
 # 这是一个跨行且带逻辑的“高级版 alias”
 cz() {
@@ -54,3 +55,6 @@ prepend_path "$HOME/.local/bin"
 
 # mise shims (用于所有环境)
 prepend_path "$HOME/.local/share/mise/shims"
+
+# moon CLI (official installer default path)
+prepend_path "$HOME/.moon/bin"
