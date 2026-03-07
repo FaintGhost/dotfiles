@@ -1,16 +1,24 @@
+[ -n "${BASH_VERSION:-}" ] || return 0
+
 alias dc='docker compose'
 alias t='tmux'
 
-{{- if and .profile.shell.proxy.http .profile.shell.proxy.https .profile.shell.proxy.all }}
-p() {
-  export http_proxy="{{ .profile.shell.proxy.http }}"
-  export https_proxy="{{ .profile.shell.proxy.https }}"
-  export all_proxy="{{ .profile.shell.proxy.all }}"
+{{- if and .shell.proxy.http .shell.proxy.https .shell.proxy.all }}
+proxy_on() {
+  export http_proxy="{{ .shell.proxy.http }}"
+  export https_proxy="{{ .shell.proxy.https }}"
+  export all_proxy="{{ .shell.proxy.all }}"
+}
+
+proxy_off() {
+  unset http_proxy
+  unset https_proxy
+  unset all_proxy
 }
 {{- end }}
 
 if [ -z "${TERM:-}" ] || [ "$TERM" = "dumb" ]; then
-  export TERM="{{ .profile.shell.term_fallback }}"
+  export TERM="{{ .shell.term_fallback }}"
 fi
 
 # 这是一个跨行且带逻辑的“高级版 alias”

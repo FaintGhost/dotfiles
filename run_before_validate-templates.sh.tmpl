@@ -49,21 +49,24 @@ compact_error() {
 print_result() {
   local status=$1
   local detail=$2
+  local color="$NC"
+  local label=''
 
   case "$status" in
     ok)
-      echo -e "${GREEN}完成${NC}"
-      if [ -n "$detail" ]; then
-        echo -e "    ${GREEN}↳${NC} $detail"
-      fi
+      color="$GREEN"
+      label='✓ 完成'
       ;;
     fail)
-      echo -e "${RED}失败${NC}"
-      if [ -n "$detail" ]; then
-        echo -e "    ${RED}↳${NC} $detail"
-      fi
+      color="$RED"
+      label='✗ 失败'
       ;;
   esac
+
+  echo -e "    ${color}${label}${NC}"
+  if [ "$status" = "fail" ] && [ -n "$detail" ]; then
+    echo -e "    ${color}↳${NC} $detail"
+  fi
 }
 
 render_template() {
@@ -90,7 +93,7 @@ validate_item() {
   local error_path=''
 
   TOTAL=$((TOTAL + 1))
-  printf "  > 验证 %-30s" "$description"
+  echo "  > 验证 $description"
 
   if [ ! -f "$abs_path" ]; then
     print_result fail "文件不存在: $rel_path"
@@ -112,11 +115,7 @@ validate_item() {
   fi
 
   PASSED=$((PASSED + 1))
-  if [ "$needs_bash_check" = "yes" ]; then
-    print_result ok "模板渲染与 bash 语法均通过"
-  else
-    print_result ok "模板渲染通过"
-  fi
+  print_result ok ""
 }
 
 validate_group() {

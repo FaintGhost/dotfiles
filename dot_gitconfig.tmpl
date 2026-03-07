@@ -1,6 +1,6 @@
 [user]
-  name = {{ .profile.git.user.name }}
-  email = {{ .profile.git.user.email }}
+  name = {{ .git.user.name }}
+  email = {{ .git.user.email }}
 
 [core]
 {{- if eq .chezmoi.os "windows" }}
