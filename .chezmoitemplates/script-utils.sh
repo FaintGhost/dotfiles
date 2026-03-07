@@ -9,8 +9,6 @@ YELLOW='\033[1;33m'
 RED='\033[0;31m'
 NC='\033[0m'
 
-# 统一宽度（考虑中文字符）
-LABEL_WIDTH=32
 LOG_TAIL_LINES=10
 
 # 进度旋转器
@@ -21,13 +19,13 @@ show_spinner() {
 
   while kill -0 "$pid" 2>/dev/null; do
     local temp=${spinstr#?}
-    printf " [%c]  " "$spinstr"
+    printf "[%c]  " "$spinstr"
     spinstr=$temp${spinstr%"$temp"}
     sleep "$delay"
-    printf "\b\b\b\b\b\b"
+    printf "\b\b\b\b\b"
   done
 
-  printf "    \b\b\b\b"
+  printf "     \b\b\b\b\b"
 }
 
 show_task_log() {
@@ -56,7 +54,8 @@ run_task_logged() {
   local exit_code
 
   log_file=$(mktemp)
-  printf "  > %-${LABEL_WIDTH}s" "$msg"
+  echo "  > $msg"
+  printf "    "
 
   "$@" >"$log_file" 2>&1 &
   pid=$!
@@ -69,19 +68,19 @@ run_task_logged() {
   fi
 
   if [ "$exit_code" -eq 0 ]; then
-    echo -e "${GREEN}完成${NC}"
+    echo -e "${GREEN}✓ 完成${NC}"
     rm -f "$log_file"
     return 0
   fi
 
   if [ "$mode" = "skip" ]; then
-    echo -e "${YELLOW}跳过${NC}"
+    echo -e "${YELLOW}⚠ 跳过${NC}"
     show_task_log "$log_file"
     rm -f "$log_file"
     return 0
   fi
 
-  echo -e "${RED}失败${NC}"
+  echo -e "${RED}✗ 失败${NC}"
   show_task_log "$log_file"
   rm -f "$log_file"
   return "$exit_code"
