@@ -53,12 +53,13 @@ czu() {
 
 export NO_PROXY=localhost,127.0.0.1
 
-# PATH 去重添加函数
+# PATH 去重添加函数(先移除已有出现,确保一定置于最前)
 prepend_path() {
-  case ":${PATH}:" in
-    *:"$1":*) ;;
-    *) export PATH="$1:$PATH" ;;
-  esac
+  PATH=":${PATH}:"
+  PATH="${PATH//:$1:/:}"
+  PATH="${PATH#:}"
+  PATH="${PATH%:}"
+  export PATH="$1:$PATH"
 }
 
 # ==========================================
