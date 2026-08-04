@@ -66,10 +66,6 @@ prepend_path() {
 # 开发工具初始化
 # ==========================================
 
-if command -v starship &> /dev/null; then
-  eval "$(starship init bash)"
-fi
-
 # 可选本地工具(存在才加载)——先于主 PATH 块,
 # 让后面的 prepend 排在它们前面
 [[ -r "$HOME/.cargo/env" ]] && . "$HOME/.cargo/env"
@@ -88,3 +84,8 @@ prepend_path "$HOME/.bun/bin"
 prepend_path "$HOME/.local/bin"
 prepend_path "$HOME/.moon/bin"
 prepend_path "$HOME/.local/share/mise/shims"
+
+# starship 依赖 mise shims 已在 PATH,必须放在 PATH 设置之后
+if command -v starship &> /dev/null; then
+  eval "$(starship init bash)"
+fi
