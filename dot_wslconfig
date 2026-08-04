@@ -1,0 +1,12 @@
+[wsl2]
+memory=8GB
+processors=4
+networkingMode=mirrored
+dnsTunneling=true
+firewall=true
+
+[experimental]
+autoMemoryReclaim=gradual
+sparseVhd=true
+hostAddressLoopback=true
+initialAutoProxyTimeout=2000
