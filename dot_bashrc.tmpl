@@ -70,20 +70,10 @@ if command -v starship &> /dev/null; then
   eval "$(starship init bash)"
 fi
 
-# rustup/cargo、Vite+ 的 env 先加载(它们会 prepend 自己的 bin),
-# 让后面的 mise shims prepend 后仍然排在最前
+# 可选本地工具(存在才加载)——先于主 PATH 块,
+# 让后面的 prepend 排在它们前面
 [[ -r "$HOME/.cargo/env" ]] && . "$HOME/.cargo/env"
 [[ -r "$HOME/.vite-plus/env" ]] && . "$HOME/.vite-plus/env"
-
-prepend_path "$HOME/.opencode/bin"
-prepend_path "$HOME/.bun/bin"
-prepend_path "$HOME/.local/bin"
-prepend_path "$HOME/.local/share/mise/shims"
-prepend_path "$HOME/.moon/bin"
-
-# ==========================================
-# 可选本地工具(存在才加载)
-# ==========================================
 
 # grok
 prepend_path "$HOME/.grok/bin"
@@ -91,3 +81,10 @@ prepend_path "$HOME/.grok/bin"
 
 # kimi-code
 prepend_path "$HOME/.kimi-code/bin"
+
+# 主 PATH:越靠后 prepend 优先级越高,mise shims 永远最后 prepend = 最前
+prepend_path "$HOME/.opencode/bin"
+prepend_path "$HOME/.bun/bin"
+prepend_path "$HOME/.local/bin"
+prepend_path "$HOME/.moon/bin"
+prepend_path "$HOME/.local/share/mise/shims"
