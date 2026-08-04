@@ -74,3 +74,20 @@ prepend_path "$HOME/.bun/bin"
 prepend_path "$HOME/.local/bin"
 prepend_path "$HOME/.local/share/mise/shims"
 prepend_path "$HOME/.moon/bin"
+
+# ==========================================
+# 可选本地工具(存在才加载)
+# ==========================================
+
+# rustup/cargo(未迁移到 mise 的机器)
+[[ -r "$HOME/.cargo/env" ]] && . "$HOME/.cargo/env"
+
+# Vite+
+[[ -r "$HOME/.vite-plus/env" ]] && . "$HOME/.vite-plus/env"
+
+# grok
+prepend_path "$HOME/.grok/bin"
+[[ -r "$HOME/.grok/completions/bash/grok.bash" ]] && source "$HOME/.grok/completions/bash/grok.bash"
+
+# kimi-code
+prepend_path "$HOME/.kimi-code/bin"
