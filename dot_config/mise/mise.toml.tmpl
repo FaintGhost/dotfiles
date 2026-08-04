@@ -1,0 +1,18 @@
+[tools]
+bun = "latest"
+go = "1.26.1"
+java = "21"
+node = "24"
+rust = "stable"
+uv = "latest"
+
+[tasks]
+setup = "mise install"
+update = "mise upgrade"
+which = "mise where"
+
+[settings]
+python.uv_venv_auto = true
+
+[env]
+GOPATH = '{{ joinPath .chezmoi.homeDir ".local/share/go" }}'
