@@ -15,8 +15,9 @@
 # ==========================================
 {{- if ne .chezmoi.os "windows" }}
 run_onchange_*.ps1
-# Windows 特有目录
+# Windows 特有目录/文件
 Documents/
+.wslconfig
 # AppData/
 {{- end }}
 
