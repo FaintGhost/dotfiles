@@ -1,0 +1,90 @@
+[ -n "${ZSH_VERSION:-}" ] || return 0
+
+alias dc='docker compose'
+alias t='tmux'
+
+{{- if and .shell.proxy.http .shell.proxy.https .shell.proxy.all }}
+proxy_on() {
+  export http_proxy="{{ .shell.proxy.http }}"
+  export https_proxy="{{ .shell.proxy.https }}"
+  export all_proxy="{{ .shell.proxy.all }}"
+}
+
+proxy_off() {
+  unset http_proxy
+  unset https_proxy
+  unset all_proxy
+}
+{{- end }}
+
+if [ -z "${TERM:-}" ] || [ "$TERM" = "dumb" ]; then
+  export TERM="{{ .shell.term_fallback }}"
+fi
+
+# 这是一个跨行且带逻辑的“高级版 alias”
+cz() {
+  chezmoi "$@"
+  local exit_code=$?
+
+  if [ $exit_code -eq 0 ]; then
+    case "$1" in
+      apply)
+        echo "ℹ️ 仅应用本地 source；如需拉取远端更新请运行 chezmoi update 或 czu"
+        echo "🚀 正在自动刷新环境..."
+        source "$HOME/.zshrc"
+        ;;
+      update|init)
+        echo "🚀 正在自动刷新环境..."
+        source "$HOME/.zshrc"
+        ;;
+    esac
+  fi
+
+  return $exit_code
+}
+
+czu() {
+  cz update "$@"
+}
+
+# ==========================================
+# 基础环境变量配置
+# ==========================================
+
+export NO_PROXY=localhost,127.0.0.1
+
+# PATH 去重添加函数(先移除已有出现,确保一定置于最前)
+prepend_path() {
+  PATH=":${PATH}:"
+  PATH="${PATH//:$1:/:}"
+  PATH="${PATH#:}"
+  PATH="${PATH%:}"
+  export PATH="$1:$PATH"
+}
+
+# ==========================================
+# 开发工具初始化
+# ==========================================
+
+# 可选本地工具(存在才加载)——先于主 PATH 块,
+# 让后面的 prepend 排在它们前面
+[[ -r "$HOME/.cargo/env" ]] && . "$HOME/.cargo/env"
+[[ -r "$HOME/.vite-plus/env" ]] && . "$HOME/.vite-plus/env"
+
+# grok
+prepend_path "$HOME/.grok/bin"
+
+# kimi-code
+prepend_path "$HOME/.kimi-code/bin"
+
+# 主 PATH:越靠后 prepend 优先级越高,mise shims 永远最后 prepend = 最前
+prepend_path "$HOME/.opencode/bin"
+prepend_path "$HOME/.bun/bin"
+prepend_path "$HOME/.local/bin"
+prepend_path "$HOME/.moon/bin"
+prepend_path "$HOME/.local/share/mise/shims"
+
+# starship 依赖 mise shims 已在 PATH,必须放在 PATH 设置之后
+if command -v starship &> /dev/null; then
+  eval "$(starship init zsh)"
+fi

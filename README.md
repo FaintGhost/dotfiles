@@ -1,6 +1,6 @@
 # dotfiles
 
-跨 Windows / Linux 的统一开发环境,由三层工具组成:
+跨 Windows / Linux / macOS 的统一开发环境,由三层工具组成:
 
 | 层 | 工具 | 职责 |
 |---|---|---|
@@ -8,13 +8,15 @@
 | 工具链 | [mise](https://mise.jdx.dev) | 统一管理 go/node/python/rust/uv 等开发工具版本 |
 | 秘密 | age + 1Password | SSH 私钥等加密存储在仓库,密钥存 1Password |
 
-机器:Windows 本机 + kr-ts(Debian arm64,SSH 可达)。
+机器:Windows 本机 + kr-ts(Debian arm64,SSH 可达)+ mac-mini(macOS arm64,SSH 可达)。
 
 ## 新机器 bootstrap
 
 ```bash
+# 0. macOS 前置条件:先装 Xcode Command Line Tools(否则 /usr/bin/git 不可用)
+#    xcode-select --install,或系统更新后按提示安装
 # 1. 装 chezmoi 和 mise(可用各自官方脚本,装完后 chezmoi 本身不管自己)
-# 2. 从 1Password 取出 age 私钥,放到 ~/.config/chezmoi/key.txt
+# 2. 从 1Password 取出 age 私钥,放到 ~/.config/chezmoi/key/age.txt
 # 3. 初始化并应用(会拉取本仓库、解密 age 文件、渲染模板)
 chezmoi init --apply https://github.com/FaintGhost/dotfiles.git
 # 4. 装全部开发工具
@@ -33,17 +35,19 @@ mise install
 | `.gitconfig` | 全平台 | autocrlf 按 OS 分支 |
 | PowerShell profile | 仅 Windows | `readonly_Documents/` |
 | `.wslconfig` | 仅 Windows | |
-| `.bashrc` / `.tmux.conf` / nvim | 仅 Linux | |
+| `.bashrc` / `.tmux.conf` / nvim | Linux + macOS | |
+| `.zshrc` | Linux + macOS | macOS 默认 shell 是 zsh,与 `.bashrc` 是兄弟文件,改动要两边同步 |
 
 ## 已知坑(改动前必读)
 
 1. **改完模板两侧都要同步**:Windows 跑 `chezmoi apply --force <file>`,kr-ts 跑 `chezmoi update --force`。漏一边就会出现"一边好一边坏"。
-2. **`.bashrc` 顺序不能重排**:可选工具 env(cargo/vite-plus/grok/kimi-code)→ `prepend_path mise shims`(永远最前)→ **starship init 必须在 PATH 装配之后**,否则 mise 版 starship 找不到、prompt 静默变裸。
+2. **`.bashrc` / `.zshrc` 顺序不能重排**:可选工具 env(cargo/vite-plus/grok/kimi-code)→ `prepend_path mise shims`(永远最前)→ **starship init 必须在 PATH 装配之后**,否则 mise 版 starship 找不到、prompt 静默变裸。两个文件只有 guard、`cz` 里 source 的文件名和 `starship init` 的 shell 参数不同,其余内容必须保持一致。
 3. **`mise.toml` 的 `[env] GOPATH` 必须用 TOML 单引号字面字符串**:双引号在 Windows 反斜杠路径上会转义爆炸。
 4. **herdr 只对非 Windows 生效**:上游无 Windows release,mise 两个后端都仅 linux/darwin。Windows 的 herdr 是官方 install.ps1 独立装的,不受 mise 管。
 5. **NetCatty(Windows SSH 客户端)不要开 .ssh/config 同步**:chezmoi 已收回该文件管理权,两边都写会冲突。
 6. 交互确认一律用 `--force` 跳过;`chezmoi remove` 已废弃,用 `destroy --force`。
-7. kr-ts 上验证 PATH 相关结果要用 `bash -ic 'which xxx'`(非交互 shell 不加载完整 bashrc)。
+7. kr-ts 上验证 PATH 相关结果要用 `bash -ic 'which xxx'`(非交互 shell 不加载完整 bashrc);mac-mini 上用 `zsh -ic 'which xxx'`。
+8. **mac-mini 上没有 Homebrew**:`.chezmoiscripts/` 里的系统包安装脚本仅 Linux 生效,macOS 的系统依赖靠 Xcode CLT 自带(git 等),其余开发工具一律走 mise。
 
 ## 收编新工具的标准流程
 
