@@ -15,10 +15,14 @@ rust = "stable"
 starship = "latest"
 uv = "latest"
 
-# AI agent CLI(npm 后端,三平台都有 release)
+# AI agent CLI(npm 后端)
+# codex 暂时不对 Windows 生效:win32 二进制下载反复断流,
+# 且 shim 自动补装失败会拖死 gh credential helper(解封后移除这个 if)
 "npm:@earendil-works/pi-coding-agent" = "latest"
 "npm:@oh-my-pi/pi-coding-agent" = "latest"
+{{ if ne .chezmoi.os "windows" -}}
 "npm:@openai/codex" = "latest"
+{{ end -}}
 
 [tasks]
 setup = "mise install"
