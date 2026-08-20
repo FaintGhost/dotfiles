@@ -4,9 +4,6 @@ bun = "latest"
 fd = "latest"
 gh = "latest"
 go = "1.26"
-{{ if ne .chezmoi.os "windows" -}}
-herdr = "latest"
-{{ end -}}
 java = "21"
 node = "24"
 python = "3.14"
@@ -16,12 +13,21 @@ starship = "latest"
 uv = "latest"
 
 # AI agent CLI(npm 后端)
-# codex 暂时不对 Windows 生效:win32 二进制下载反复断流,
-# 且 shim 自动补装失败会拖死 gh credential helper(解封后移除这个 if)
 "npm:@earendil-works/pi-coding-agent" = "latest"
 "npm:@oh-my-pi/pi-coding-agent" = "latest"
+
 {{ if ne .chezmoi.os "windows" -}}
-"npm:@openai/codex" = "latest"
+# herdr/codex 的 release 时效敏感,显式关掉 minimum_release_age
+# (mise 有内置默认龄期,0s = 不过滤)
+[tools.herdr]
+version = "latest"
+minimum_release_age = "0s"
+
+# codex 暂时不对 Windows 生效:win32 二进制下载反复断流,
+# 且 shim 自动补装失败会拖死 gh credential helper(解封后移除这个 if)
+[tools."npm:@openai/codex"]
+version = "latest"
+minimum_release_age = "0s"
 {{ end -}}
 
 [tasks]
