@@ -209,5 +209,7 @@ function PSConsoleHostReadLine {
 # ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 # DO NOT MODIFY -- coreutils -- 60b36fc6-2d59-49df-be51-28dd2f4c3c9a
 
-# starship prompt
-Invoke-Expression (&starship init powershell)
+# starship prompt(codex 等非交互 shell 的 TERM=dumb 下跳过,避免 stderr 污染工具输出)
+if ($env:TERM -ne 'dumb') {
+    Invoke-Expression (&starship init powershell)
+}
