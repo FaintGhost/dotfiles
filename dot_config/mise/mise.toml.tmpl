@@ -16,22 +16,17 @@ uv = "latest"
 "npm:@earendil-works/pi-coding-agent" = "latest"
 "npm:@oh-my-pi/pi-coding-agent" = "latest"
 
-{{ if eq .chezmoi.os "windows" -}}
-# Windows 用 github 后端装 codex(直接拉 GitHub Release 二进制,
-# 避开官方 install.ps1 在 Windows PowerShell 5.1 下 OSArchitecture 报错)
+# codex 统一用 github 后端(直接拉 GitHub Release 二进制),
+# Windows 上避开官方 install.ps1 在 PowerShell 5.1 下 OSArchitecture 报错;
+# release 时效敏感,显式关掉 minimum_release_age(0s = 不过滤)
 [tools."github:openai/codex"]
 version = "latest"
 minimum_release_age = "0s"
-{{ else -}}
-# herdr/codex 的 release 时效敏感,显式关掉 minimum_release_age
+
+{{ if ne .chezmoi.os "windows" -}}
+# herdr 的 release 时效敏感,显式关掉 minimum_release_age
 # (mise 有内置默认龄期,0s = 不过滤)
 [tools.herdr]
-version = "latest"
-minimum_release_age = "0s"
-
-# codex 暂时不对 Windows 生效:win32 二进制下载反复断流,
-# 且 shim 自动补装失败会拖死 gh credential helper(解封后移除这个 if)
-[tools."npm:@openai/codex"]
 version = "latest"
 minimum_release_age = "0s"
 {{ end -}}
