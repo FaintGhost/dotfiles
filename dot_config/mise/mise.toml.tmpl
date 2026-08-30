@@ -33,7 +33,11 @@ version = "latest"
 setup = "mise install"
 update = "mise upgrade"
 which = "mise where"
-skills-update = "bunx skills update -g -y"
+{{ if eq .chezmoi.os "windows" -}}
+skills-update = 'powershell -NoProfile -ExecutionPolicy Bypass -File "{{ joinPath .chezmoi.homeDir ".config/skills-update.ps1" }}"'
+{{ else -}}
+skills-update = 'bash "{{ joinPath .chezmoi.homeDir ".config/skills-update.sh" }}"'
+{{ end -}}
 
 [settings]
 python.uv_venv_auto = true

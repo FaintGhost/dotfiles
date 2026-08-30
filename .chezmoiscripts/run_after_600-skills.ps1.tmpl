@@ -1,19 +1,15 @@
 {{- if eq .chezmoi.os "windows" -}}
-# 按 ~/.config/skills.txt 清单同步全局 skills:
-# 1) 更新已装的(skills update -g -y,稳态很快)
-# 2) 清单里有但没装的补齐(skills add,自动识别本机 agent)
-# 注意:必须固定 cwd 为 HOME——skills CLI 用 cwd 探测 PromptScript/Eve,
-# 在含 promptscript.yaml 的项目目录里跑会误报 "does not support global skill installation"
+# Install missing global skills listed in ~/.config/skills.txt (no-op in steady state; full updates: mise run skills-update)
+# NOTE: cwd MUST be $HOME - the skills CLI auto-detects agents (PromptScript/Eve) from cwd; PS 5.1 misreads UTF-8-no-BOM comments, keep comments ASCII here
 Set-Location $HOME
 $Manifest = Join-Path $HOME '.config\skills.txt'
 if (-not (Test-Path $Manifest)) { exit 0 }
 if (-not (Get-Command bunx -ErrorAction SilentlyContinue)) { exit 0 }
-bunx skills update -g -y
 $installed = (bunx skills list -g 2>$null | Out-String) -replace "\x1b\[[0-9;]*m", ""
 Get-Content $Manifest | Where-Object { $_ -and -not $_.StartsWith('#') } | ForEach-Object {
     if ($installed -notmatch "Source: $_") {
         Write-Host "Installing skills from $_ ..."
-        bunx skills add $_ -g -y -s '*'
+        & (Join-Path $HOME '.config\skills-update.ps1') $_
     }
 }
 {{- end -}}

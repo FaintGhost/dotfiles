@@ -1,21 +1,17 @@
 {{- if ne .chezmoi.os "windows" -}}
 #!/bin/bash
-# 按 ~/.config/skills.txt 清单同步全局 skills:
-# 1) 更新已装的(skills update -g -y,稳态很快)
-# 2) 清单里有但没装的补齐(skills add,自动识别本机 agent)
-# 注意:必须固定 cwd 为 HOME——skills CLI 用 cwd 探测 PromptScript/Eve,
-# 在含 promptscript.yaml 的项目目录里跑会误报 "does not support global skill installation"
+# 按 ~/.config/skills.txt 清单补装缺失的全局 skills(稳态很快;全量更新用 mise run skills-update)
+# 注意:必须固定 cwd 为 HOME——skills CLI 用 cwd 探测 PromptScript/Eve 等 agent
 cd "$HOME" || exit 0
 MANIFEST="$HOME/.config/skills.txt"
 [ -f "$MANIFEST" ] || exit 0
 command -v bunx >/dev/null 2>&1 || exit 0
-bunx skills update -g -y
 installed=$(bunx skills list -g 2>/dev/null | sed -r 's/\x1b\[[0-9;]*m//g')
 while IFS= read -r pkg; do
   case "$pkg" in ''|\#*) continue ;; esac
   if ! grep -q "Source: $pkg" <<< "$installed"; then
     echo "Installing skills from $pkg ..."
-    bunx skills add "$pkg" -g -y -s '*'
+    bash "$HOME/.config/skills-update.sh" "$pkg"
   fi
 done < "$MANIFEST"
 {{- end -}}
