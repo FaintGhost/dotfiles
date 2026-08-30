@@ -1,0 +1,6 @@
+{{- if ne .chezmoi.os "windows" -}}
+#!/bin/bash
+# chezmoi update/apply 后自动升级 mise 工具(保持在声明版本区间内)
+command -v mise >/dev/null 2>&1 || exit 0
+mise upgrade
+{{- end -}}

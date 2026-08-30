@@ -20,3 +20,8 @@
 [credential "https://gist.github.com"]
   helper =
   helper = !gh auth git-credential
+{{ if eq .chezmoi.os "windows" -}}
+
+[safe]
+  directory = C:/Users/zhang/WeChatProjects/miniprogram-1
+{{- end }}
