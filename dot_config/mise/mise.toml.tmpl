@@ -16,12 +16,15 @@ uv = "latest"
 "npm:@earendil-works/pi-coding-agent" = "latest"
 "npm:@oh-my-pi/pi-coding-agent" = "latest"
 
-# codex 统一用 github 后端(直接拉 GitHub Release 二进制),
+# codex 统一用 github 后端装官方 package 资产(含 bin/codex-code-mode-host
+# 与 codex-path/rg 的完整布局),codex 自动识别 package 布局并启用 Code Mode;
 # Windows 上避开官方 install.ps1 在 PowerShell 5.1 下 OSArchitecture 报错;
 # release 时效敏感,显式关掉 minimum_release_age(0s = 不过滤)
 [tools."github:openai/codex"]
 version = "latest"
 minimum_release_age = "0s"
+matching = "codex-package-"
+bin_path = "bin"
 
 {{ if ne .chezmoi.os "windows" -}}
 # herdr 的 release 时效敏感,显式关掉 minimum_release_age
