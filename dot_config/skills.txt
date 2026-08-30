@@ -1,0 +1,13 @@
+# Agent skills 清单(skills CLI 全局安装源,owner/repo 每行一个)
+# 新机器 chezmoi update 后自动补齐;日常更新用 mise run skills-update
+# 机器专属技能不要写在这里,手动放 ~/.agents/skills 即可
+WecomTeam/wecom-unified
+anthropics/skills
+cloudflare/skills
+emdash-cms/emdash
+jakubkrehel/skills
+jimliu/baoyu-design
+mattpocock/skills
+stablyai/orca
+vercel-labs/agent-browser
+vercel-labs/skills

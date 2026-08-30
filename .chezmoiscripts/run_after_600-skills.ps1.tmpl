@@ -1,0 +1,16 @@
+{{- if eq .chezmoi.os "windows" -}}
+# 按 ~/.config/skills.txt 清单同步全局 skills:
+# 1) 更新已装的(skills update -g -y,稳态很快)
+# 2) 清单里有但没装的补齐(skills add,自动识别本机 agent)
+$Manifest = Join-Path $HOME '.config\skills.txt'
+if (-not (Test-Path $Manifest)) { exit 0 }
+if (-not (Get-Command bunx -ErrorAction SilentlyContinue)) { exit 0 }
+bunx skills update -g -y
+$installed = (bunx skills list -g 2>$null | Out-String) -replace "\x1b\[[0-9;]*m", ""
+Get-Content $Manifest | Where-Object { $_ -and -not $_.StartsWith('#') } | ForEach-Object {
+    if ($installed -notmatch "Source: $_") {
+        Write-Host "Installing skills from $_ ..."
+        bunx skills add $_ -g -y -s '*'
+    }
+}
+{{- end -}}

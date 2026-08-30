@@ -1,0 +1,18 @@
+{{- if ne .chezmoi.os "windows" -}}
+#!/bin/bash
+# 按 ~/.config/skills.txt 清单同步全局 skills:
+# 1) 更新已装的(skills update -g -y,稳态很快)
+# 2) 清单里有但没装的补齐(skills add,自动识别本机 agent)
+MANIFEST="$HOME/.config/skills.txt"
+[ -f "$MANIFEST" ] || exit 0
+command -v bunx >/dev/null 2>&1 || exit 0
+bunx skills update -g -y
+installed=$(bunx skills list -g 2>/dev/null | sed -r 's/\x1b\[[0-9;]*m//g')
+while IFS= read -r pkg; do
+  case "$pkg" in ''|\#*) continue ;; esac
+  if ! grep -q "Source: $pkg" <<< "$installed"; then
+    echo "Installing skills from $pkg ..."
+    bunx skills add "$pkg" -g -y -s '*'
+  fi
+done < "$MANIFEST"
+{{- end -}}
