@@ -71,7 +71,7 @@ mise prune         # 清理旧版本
 chezmoi update     # 同步配置(双侧)
 ```
 
-mise 需要 **2026.10.4 或更高版本**。全局工具声明启用 `auto_update = true`：`latest` 跟随最新版本,`go = "1.26"`、`node = "24"` 等仅在声明范围内更新；精确固定的 `npm:@zvec/zvec-grep = "0.2.2"` 不自动更新。
+mise 需要 **2026.10.4 或更高版本**。全局工具声明启用 `auto_update = true`：`latest` 跟随最新版本,包括 `npm:@zvec/zvec-grep`；`go = "1.26"`、`node = "24"` 等仅在声明范围内更新。
 
 各平台 `chezmoi update`/`apply` 后会执行 `mise bootstrap services apply --yes`,安装并启动 `mise-tool-update` 后台服务。服务每小时扫描一次,各工具默认每 24 小时检查更新；分别使用 Linux systemd 用户服务、macOS LaunchAgent、Windows 计划任务。已替代原来的每次同步执行 `mise upgrade` 钩子；此配置只自动更新工具,不设置 mise 自身的自动更新。Linux 需要可用的 systemd 用户管理器。
 
