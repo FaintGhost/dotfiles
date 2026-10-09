@@ -37,7 +37,7 @@ mise install
 | PowerShell profile | 仅 Windows | `readonly_Documents/` |
 | `.wslconfig` | 仅 Windows | |
 | `.bashrc` / `.tmux.conf` / nvim | Linux + macOS | |
-| `.zshrc` | Linux + macOS | macOS 默认 shell 是 zsh,与 `.bashrc` 是兄弟文件,改动要两边同步 |
+| `.zshrc` | Linux + macOS | macOS 默认 shell 是 zsh,与 `.bashrc` 同步维护；PATH 仅保留当前使用的工具 |
 
 ## 已知坑(改动前必读)
 
