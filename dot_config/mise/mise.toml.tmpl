@@ -13,8 +13,8 @@ starship = "latest"
 uv = "latest"
 
 # AI agent CLI(npm 后端)
-"npm:@earendil-works/pi-coding-agent" = "latest"
 "npm:@oh-my-pi/pi-coding-agent" = "latest"
+"npm:@zvec/zvec-grep" = "0.2.2"
 
 # codex 统一用 github 后端装官方 package 资产(含 bin/codex-code-mode-host
 # 与 codex-path/rg 的完整布局),codex 自动识别 package 布局并启用 Code Mode;
@@ -24,10 +24,8 @@ version = "latest"
 matching = "codex-package-"
 bin_path = "bin"
 
-{{ if ne .chezmoi.os "windows" -}}
 [tools.herdr]
 version = "latest"
-{{ end -}}
 
 [tasks]
 setup = "mise install"
@@ -35,7 +33,9 @@ update = "mise upgrade"
 which = "mise where"
 
 [settings]
+minimum_release_age = "0"
 python.uv_venv_auto = true
 
 [env]
 GOPATH = '{{ joinPath .chezmoi.homeDir ".local/share/go" }}'
+HERDR_CONFIG_PATH = '{{ joinPath .chezmoi.homeDir ".config/herdr/config.toml" }}'

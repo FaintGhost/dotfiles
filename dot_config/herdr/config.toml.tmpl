@@ -1,0 +1,30 @@
+onboarding = false
+
+[ui.toast]
+delivery = "system"
+
+[experimental]
+pane_history = false
+
+[ui.sound]
+enabled = true
+
+[ui]
+agent_panel_sort = "spaces"
+show_agent_labels_on_pane_borders = true
+{{ if eq .chezmoi.os "linux" -}}
+tab_bar_right = [
+  { type = "command", command = 'binary="${XDG_CONFIG_HOME:-$HOME/.config}/herdr/plugins/github/faintghost.system-stats-748650aba985/bin/herdr-system-stats"; if [ -x "$binary" ]; then "$binary" status; fi', interval_seconds = 5, timeout_seconds = 2 },
+]
+tab_bar_right_separator = " · "
+{{ end }}
+[theme]
+name = "terminal"
+auto_switch = false
+{{ if eq .chezmoi.os "linux" }}
+[[keys.command]]
+key = "prefix+u"
+type = "plugin_action"
+command = "faintghost.system-stats.toggle-display"
+description = "切换资源百分比／用量"
+{{ end -}}
