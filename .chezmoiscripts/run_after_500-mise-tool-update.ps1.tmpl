@@ -1,0 +1,8 @@
+{{- if eq .chezmoi.os "windows" -}}
+# Apply the native background tool-update service after chezmoi updates config.
+$ErrorActionPreference = 'Stop'
+if (Get-Command mise -ErrorAction SilentlyContinue) {
+    mise bootstrap services apply --yes
+    if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+}
+{{- end -}}

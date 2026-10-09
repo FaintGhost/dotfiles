@@ -1,0 +1,7 @@
+{{- if ne .chezmoi.os "windows" -}}
+#!/bin/bash
+# Apply the native background tool-update service after chezmoi updates config.
+set -e
+command -v mise >/dev/null 2>&1 || exit 0
+mise bootstrap services apply --yes
+{{- end -}}

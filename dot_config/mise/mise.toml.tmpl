@@ -1,19 +1,19 @@
 [tools]
-"aqua:go-task/task" = "latest"
-bun = "latest"
-fd = "latest"
-gh = "latest"
-go = "1.26"
-java = "21"
-node = "24"
-python = "3.14"
-ripgrep = "latest"
-rust = "stable"
-starship = "latest"
-uv = "latest"
+"aqua:go-task/task" = { version = "latest", auto_update = true }
+bun = { version = "latest", auto_update = true }
+fd = { version = "latest", auto_update = true }
+gh = { version = "latest", auto_update = true }
+go = { version = "1.26", auto_update = true }
+java = { version = "21", auto_update = true }
+node = { version = "24", auto_update = true }
+python = { version = "3.14", auto_update = true }
+ripgrep = { version = "latest", auto_update = true }
+rust = { version = "stable", auto_update = true }
+starship = { version = "latest", auto_update = true }
+uv = { version = "latest", auto_update = true }
 
 # AI agent CLI(npm 后端)
-"npm:@oh-my-pi/pi-coding-agent" = "latest"
+"npm:@oh-my-pi/pi-coding-agent" = { version = "latest", auto_update = true }
 "npm:@zvec/zvec-grep" = "0.2.2"
 
 # codex 统一用 github 后端装官方 package 资产(含 bin/codex-code-mode-host
@@ -23,9 +23,14 @@ uv = "latest"
 version = "latest"
 matching = "codex-package-"
 bin_path = "bin"
+auto_update = true
 
 [tools.herdr]
 version = "latest"
+auto_update = true
+
+[bootstrap.services.mise-tool-update]
+builtin = "tool-update"
 
 [tasks]
 setup = "mise install"

@@ -30,6 +30,7 @@ TEMPLATE_ONLY_ITEMS=$(cat <<'ITEMS'
 dot_gitconfig.tmpl|Git 配置
 dot_config/mise/mise.toml.tmpl|mise 全局配置
 dot_config/herdr/config.toml.tmpl|Herdr 全局配置
+.chezmoiscripts/run_after_500-mise-tool-update.ps1.tmpl|Windows 工具更新服务脚本
 ITEMS
 )
 
@@ -40,6 +41,7 @@ run_onchange_before_validate-templates.sh.tmpl|模板验证脚本
 .chezmoiscripts/run_onchange_100-system-packages.sh.tmpl|系统包安装脚本
 .chezmoiscripts/run_onchange_200-mise.sh.tmpl|mise 安装脚本
 .chezmoiscripts/run_onchange_300-font-cache.sh.tmpl|字体安装脚本
+.chezmoiscripts/run_after_500-mise-tool-update.sh.tmpl|工具更新服务脚本
 ITEMS
 )
 
