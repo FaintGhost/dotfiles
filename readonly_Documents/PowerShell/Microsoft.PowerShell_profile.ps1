@@ -211,5 +211,41 @@ function PSConsoleHostReadLine {
 
 # starship prompt(codex 等非交互 shell 的 TERM=dumb 下跳过,避免 stderr 污染工具输出)
 if ($env:TERM -ne 'dumb') {
-    Invoke-Expression (&starship init powershell)
+    # 1) 绕过 mise shim: shim 每次调用 ~800ms,真身 ~65-190ms。
+    # 2) 缓存 `starship init powershell` 生成的脚本,省掉每次启动的 starship 进程;
+    #    仅当 starship.exe 大小/时间戳变化时重新生成。
+    # 3) 生成脚本里的 continuation prompt 会再起一次 starship;改为缓存其文本。
+    $__st_exe = Join-Path $env:LOCALAPPDATA 'mise\installs\starship\latest\starship.exe'
+    if (Test-Path -LiteralPath $__st_exe) {
+        $env:PATH = "$(Split-Path -LiteralPath $__st_exe);$env:PATH"
+        $__st_file  = Get-Item -LiteralPath $__st_exe
+        $__st_sig   = '{0}-{1}' -f $__st_file.Length, $__st_file.LastWriteTimeUtc.Ticks
+        $__st_dir   = Join-Path $env:LOCALAPPDATA 'starship'
+        $__st_cache = Join-Path $__st_dir 'init-powershell.ps1'
+        $__st_cont  = Join-Path $__st_dir 'continuation.txt'
+        $__st_key   = Join-Path $__st_dir 'init-powershell.key'
+        $__st_old   = Get-Content -LiteralPath $__st_key -Raw -ErrorAction Ignore
+        if (-not (Test-Path -LiteralPath $__st_cache) -or $__st_old -ne $__st_sig) {
+            New-Item -ItemType Directory -Force -Path $__st_dir | Out-Null
+            $__st_init = & $__st_exe init powershell --print-full-init | Out-String
+            & $__st_exe prompt --continuation | Set-Content -LiteralPath $__st_cont -Encoding utf8 -NoNewline
+            # 去掉生成脚本里的 continuation 调用(否则每次启动多起一次 starship)
+            $__st_strip = [regex]::Replace($__st_init,
+                '(?m)^    # Invoke Starship and set continuation prompt\r?\n    Set-PSReadLineOption -ContinuationPrompt \(\r?\n(?:.*\r?\n)*?    \)\r?\n', '')
+            if ($__st_strip -notmatch '--continuation') { $__st_init = $__st_strip }
+            Set-Content -LiteralPath $__st_cache -Value $__st_init -Encoding utf8
+            Set-Content -LiteralPath $__st_key -Value $__st_sig -Encoding utf8 -NoNewline
+        }
+        if ((Get-Item -LiteralPath $__st_cache).Length -gt 1000) {
+            if (Test-Path -LiteralPath $__st_cont) {
+                Set-PSReadLineOption -ContinuationPrompt (Get-Content -LiteralPath $__st_cont -Raw)
+            }
+            . $__st_cache
+        } else {
+            Invoke-Expression (&starship init powershell)
+        }
+        Remove-Variable __st_exe, __st_file, __st_sig, __st_dir, __st_cache, __st_cont, __st_key, __st_old, __st_init, __st_strip -ErrorAction Ignore
+    } else {
+        Invoke-Expression (&starship init powershell)
+    }
 }
