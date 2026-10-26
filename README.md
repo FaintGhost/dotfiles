@@ -42,7 +42,7 @@ mise install
 ## 已知坑(改动前必读)
 
 1. **改完模板两侧都要同步**:Windows 跑 `chezmoi apply --force <file>`,kr-ts 跑 `chezmoi update --force`。漏一边就会出现"一边好一边坏"。
-2. **`.bashrc` / `.zshrc` 顺序不能重排**:可选工具 env(cargo/vite-plus/grok/kimi-code)→ `prepend_path mise shims`(永远最前)→ **starship init 必须在 PATH 装配之后**,否则 mise 版 starship 找不到、prompt 静默变裸。两个文件只有 guard、`cz` 里 source 的文件名和 `starship init` 的 shell 参数不同,其余内容必须保持一致。
+2. **`.bashrc` / `.zshrc` 顺序不能重排**:可选工具 env(cargo/vite-plus/grok)→ `prepend_path mise shims`(永远最前)→ **starship init 必须在 PATH 装配之后**,否则 mise 版 starship 找不到、prompt 静默变裸。两个文件只有 guard、`cz` 里 source 的文件名和 `starship init` 的 shell 参数不同,其余内容必须保持一致。
 3. **`mise.toml` 的 `[env] GOPATH` 必须用 TOML 单引号字面字符串**:双引号在 Windows 反斜杠路径上会转义爆炸。
 4. **Herdr 全平台由 mise 管理**:当前官方稳定版提供 Linux/macOS/Windows 资产。mise 设置 `HERDR_CONFIG_PATH` 指向用户目录下的 `.config/herdr/config.toml`,Windows 也使用这份 chezmoi 配置。资源插件目前仅支持 Linux,命令从 `$HOME`/`XDG_CONFIG_HOME` 解析路径；没有安装插件时状态栏不输出。插件二进制、注册表和 session/state 不纳入 chezmoi。
 5. **NetCatty(Windows SSH 客户端)不要开 .ssh/config 同步**:chezmoi 已收回该文件管理权,两边都写会冲突。
