@@ -31,10 +31,12 @@ machines:
   # 轻量机器 / 跳板 / 监控
   jp1: min
   jp2: min
-  DMIT-MIOT: min
-  DMIT-Bf5fzKIJzZ: min
+  DMIT-MIOT: min             # dmit-miot-1
+  DMIT-Bf5fzKIJzZ: min       # dmit-t1
   us1: min
   tailscale1: min
   debian13: min              # studio-debian13
-  homeassistant: min
-  pve: min
+
+  # 不管的机器（不接 chezmoi / mise）：
+  #   pve             - Proxmox 宿主机
+  #   homeassistant   - HAOS，配置走 HA 自己的机制
