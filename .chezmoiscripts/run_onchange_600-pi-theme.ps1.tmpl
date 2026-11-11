@@ -1,0 +1,56 @@
+{{- if eq .chezmoi.os "windows" -}}
+# 给 Pi 的 settings.json 设置主题（只改 theme 一个键，其他键原样保留）
+#
+# 为什么用脚本而不是模板：settings.json 里混着机器特定配置
+# （defaultModel / defaultProvider / lastChangelogVersion），
+# 用模板整文件覆盖会冲掉别的机器上的值。
+# pi 不一定装了，没装就跳过。
+
+$ErrorActionPreference = 'Stop'
+
+if (-not (Get-Command pi -ErrorAction SilentlyContinue)) {
+    Write-Host 'pi 未安装，跳过 Pi 主题设置'
+    exit 0
+}
+
+$settingsPath = Join-Path $env:USERPROFILE '.pi\agent\settings.json'
+$theme = 'monokai-pro-light/monokai-pro-dark'
+
+$dir = Split-Path -Parent $settingsPath
+if (-not (Test-Path $dir)) {
+    New-Item -ItemType Directory -Path $dir -Force | Out-Null
+}
+
+$data = [ordered]@{}
+
+if (Test-Path $settingsPath) {
+    try {
+        $raw = Get-Content -Path $settingsPath -Raw -ErrorAction Stop
+        if ($raw -and $raw.Trim().Length -gt 0) {
+            $parsed = $raw | ConvertFrom-Json -ErrorAction Stop
+            foreach ($p in $parsed.PSObject.Properties) {
+                $data[$p.Name] = $p.Value
+            }
+        }
+    }
+    catch {
+        # 文件坏了就备份再重写，不静默丢数据
+        $bak = "$settingsPath.broken"
+        try {
+            Move-Item -Path $settingsPath -Destination $bak -Force
+            Write-Host "settings.json 解析失败，已备份到 $bak"
+        }
+        catch { }
+        $data = [ordered]@{}
+    }
+}
+
+if ($data.Contains('theme') -and $data['theme'] -eq $theme) {
+    exit 0
+}
+
+$data['theme'] = $theme
+$json = $data | ConvertTo-Json -Depth 10
+Set-Content -Path $settingsPath -Value $json -Encoding UTF8 -NoNewline
+Write-Host "Pi 主题已设为 $theme"
+{{- end -}}
