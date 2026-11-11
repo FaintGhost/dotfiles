@@ -1,15 +1,18 @@
 {{- if eq .chezmoi.os "windows" -}}
-# 给 Pi 的 settings.json 设置主题（只改 theme 一个键，其他键原样保留）
+# Set the Pi theme in ~/.pi/agent/settings.json.
 #
-# 为什么用脚本而不是模板：settings.json 里混着机器特定配置
-# （defaultModel / defaultProvider / lastChangelogVersion），
-# 用模板整文件覆盖会冲掉别的机器上的值。
-# pi 不一定装了，没装就跳过。
+# Why a script and not a template: settings.json also holds machine-specific
+# keys (defaultModel / defaultProvider / lastChangelogVersion). A full-file
+# template would overwrite them with another machine's values.
+# Only the "theme" key is touched. Skips cleanly when pi is not installed.
+#
+# Output is ASCII-only: Windows PowerShell 5.1 reads .ps1 files using the
+# system code page, so non-ASCII text in this file would be garbled.
 
 $ErrorActionPreference = 'Stop'
 
 if (-not (Get-Command pi -ErrorAction SilentlyContinue)) {
-    Write-Host 'pi 未安装，跳过 Pi 主题设置'
+    Write-Host 'pi not installed, skipping theme setup'
     exit 0
 }
 
@@ -34,11 +37,11 @@ if (Test-Path $settingsPath) {
         }
     }
     catch {
-        # 文件坏了就备份再重写，不静默丢数据
+        # Unparsable file: back it up instead of silently dropping data.
         $bak = "$settingsPath.broken"
         try {
             Move-Item -Path $settingsPath -Destination $bak -Force
-            Write-Host "settings.json 解析失败，已备份到 $bak"
+            Write-Host "settings.json unparsable, backed up to $bak"
         }
         catch { }
         $data = [ordered]@{}
@@ -51,6 +54,10 @@ if ($data.Contains('theme') -and $data['theme'] -eq $theme) {
 
 $data['theme'] = $theme
 $json = $data | ConvertTo-Json -Depth 10
-Set-Content -Path $settingsPath -Value $json -Encoding UTF8 -NoNewline
-Write-Host "Pi 主题已设为 $theme"
+
+# Write UTF-8 without BOM
+$utf8NoBom = New-Object System.Text.UTF8Encoding($false)
+[System.IO.File]::WriteAllText($settingsPath, $json, $utf8NoBom)
+
+Write-Host "Pi theme set to $theme"
 {{- end -}}

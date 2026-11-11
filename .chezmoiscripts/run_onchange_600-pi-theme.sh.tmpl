@@ -1,3 +1,4 @@
+{{- if ne .chezmoi.os "windows" -}}
 #!/bin/sh
 # 给 Pi 的 settings.json 设置主题（只改 theme 一个键，其他键原样保留）
 #
@@ -9,7 +10,7 @@
 set -e
 
 if ! command -v pi >/dev/null 2>&1; then
-	echo "pi 未安装，跳过 Pi 主题设置"
+	echo "pi not installed, skipping theme setup"
 	exit 0
 fi
 
@@ -18,13 +19,13 @@ THEME="monokai-pro-light/monokai-pro-dark"
 
 mkdir -p "$(dirname "$SETTINGS")"
 
-# 没有 jq 或 python 就不硬来，避免写坏文件
+# 没有 python 就不硬来，避免写坏文件
 if command -v python3 >/dev/null 2>&1; then
 	PY=python3
 elif command -v python >/dev/null 2>&1; then
 	PY=python
 else
-	echo "找不到 python，跳过 Pi 主题设置"
+	echo "no python found, skipping theme setup"
 	exit 0
 fi
 
@@ -36,7 +37,7 @@ path, theme = sys.argv[1], sys.argv[2]
 data = {}
 if os.path.exists(path):
     try:
-        with open(path) as f:
+        with open(path, encoding="utf-8") as f:
             raw = f.read().strip()
         data = json.loads(raw) if raw else {}
     except Exception:
@@ -44,7 +45,7 @@ if os.path.exists(path):
         bak = path + ".broken"
         try:
             os.replace(path, bak)
-            print(f"settings.json 解析失败，已备份到 {bak}")
+            print("settings.json unparsable, backed up to " + bak)
         except Exception:
             pass
         data = {}
@@ -57,9 +58,10 @@ if data.get("theme") == theme:
 
 data["theme"] = theme
 tmp = path + ".tmp"
-with open(tmp, "w") as f:
+with open(tmp, "w", encoding="utf-8") as f:
     json.dump(data, f, indent=2, ensure_ascii=False)
     f.write("\n")
 os.replace(tmp, path)
-print(f"Pi 主题已设为 {theme}")
+print("Pi theme set to " + theme)
 PYEOF
+{{- end -}}
