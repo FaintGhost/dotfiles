@@ -23,7 +23,7 @@ machines:
   # 主力 VPS（资源够，跑完整环境）
   arm-chuncheon: full        # kr
   container: full
-  vmi3576438: full
+  vmi3576438: full           # 又名 us-contabo (13.140.36.212)
   yecaoyun-4c12g: full       # hk1
   novacloud-control-01: full # aws
   iZ2vcj7kn05tbiyj6tm6pdZ: full  # 成都阿里云
@@ -31,8 +31,10 @@ machines:
   # 轻量机器 / 跳板 / 监控
   jp1: min
   jp2: min
-  DMIT-MIOT: min             # dmit-miot-1
-  DMIT-Bf5fzKIJzZ: min       # dmit-t1
+  DMIT-MIOT: min             # dmit-miot (154.17.14.47)
+  DMIT-Bf5fzKIJzZ: min       # dmit-t1 (174.136.204.13)
+  DMIT-e37PLM2GXC: min       # dmit-an5 (64.186.224.158)
+  DMIT-efB8if7PVS: min       # dmit-as3 (179.255.100.24)
   us1: min
   tailscale1: min
   debian13: min              # studio-debian13
