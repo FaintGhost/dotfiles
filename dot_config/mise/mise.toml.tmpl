@@ -1,5 +1,12 @@
+{{- /* 按机器档位决定装哪些工具，见 .chezmoidata/machines.yaml */ -}}
+{{- $profile := "full" -}}
+{{- if hasKey .machines .chezmoi.hostname -}}
+{{-   $profile = index .machines .chezmoi.hostname -}}
+{{- end -}}
 [tools]
+# chezmoi 是所有机器都要的：没有它连 dotfiles 都拉不下来
 chezmoi = { version = "latest", auto_update = true }
+{{ if eq $profile "full" -}}
 "aqua:go-task/task" = { version = "latest", auto_update = true }
 bun = { version = "latest", auto_update = true }
 fd = { version = "latest", auto_update = true }
@@ -30,7 +37,12 @@ auto_update = true
 [tools.herdr]
 version = "latest"
 auto_update = true
-
+{{ else -}}
+# min 档：只保留 shell 必需的轻量工具，不装语言运行时和 AI agent。
+# 1G 内存 / 小磁盘的机器靠这套就能跑 dotfiles 同步和日常运维。
+ripgrep = { version = "latest", auto_update = true }
+starship = { version = "latest", auto_update = true }
+{{ end }}
 [bootstrap.services.mise-tool-update]
 builtin = "tool-update"
 
@@ -46,5 +58,7 @@ python.compile = false
 python.uv_venv_auto = true
 
 [env]
-GOPATH = '{{ joinPath .chezmoi.homeDir ".local/share/go" }}'
 HERDR_CONFIG_PATH = '{{ joinPath .chezmoi.homeDir ".config/herdr/config.toml" }}'
+{{- if eq $profile "full" }}
+GOPATH = '{{ joinPath .chezmoi.homeDir ".local/share/go" }}'
+{{- end }}

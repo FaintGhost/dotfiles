@@ -1,0 +1,40 @@
+# 按机器划分的配置档位。
+#
+# 为什么需要这个：Mac / Windows 开发机和 VPS 的资源差异很大，而 1G 内存、
+# 小磁盘的小鸡不该装 node/python/go/rust 那一整套。这里按 hostname 声明
+# 每台机器的档位，mise.toml 模板据此生成不同的 [tools] 段。
+#
+# profile 取值：
+#   full    - 完整开发环境（Mac / Windows / 主力 VPS）
+#   min     - 最小集，只装 chezmoi，够跑 dotfiles 同步
+#
+# 未列出的 hostname 一律按 full 处理（新机器默认能用）。
+
+machines:
+  # 主力开发机
+  mac-mini: full
+  mac-mini.local: full
+  mac-mini-m4: full
+  mac-mini-m4.local: full
+  laptop-vi2h6jo3: full      # Windows
+  rog: full                  # Windows
+  omarchy: full
+
+  # 主力 VPS（资源够，跑完整环境）
+  arm-chuncheon: full        # kr
+  container: full
+  vmi3576438: full
+  yecaoyun-4c12g: full       # hk1
+  novacloud-control-01: full # aws
+  iZ2vcj7kn05tbiyj6tm6pdZ: full  # 成都阿里云
+
+  # 轻量机器 / 跳板 / 监控
+  jp1: min
+  jp2: min
+  DMIT-MIOT: min
+  DMIT-Bf5fzKIJzZ: min
+  us1: min
+  tailscale1: min
+  debian13: min              # studio-debian13
+  homeassistant: min
+  pve: min
